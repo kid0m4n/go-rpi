@@ -28,10 +28,19 @@ type digitalPin struct {
 	readBuf []byte
 
 	initialized bool
+
+	epollInitialTrigger bool
+	callback            embd.IRQEvent
 }
 
 func NewDigitalPin(pd *embd.PinDesc, drv embd.GPIODriver) embd.DigitalPin {
-	return &digitalPin{id: pd.ID, n: pd.DigitalLogical, drv: drv, readBuf: make([]byte, 1)}
+	return &digitalPin{
+		id:                  pd.ID,
+		n:                   pd.DigitalLogical,
+		drv:                 drv,
+		epollInitialTrigger: true,
+		readBuf:             make([]byte, 1),
+	}
 }
 
 func (p *digitalPin) N() int {
@@ -100,6 +109,37 @@ func (p *digitalPin) valueFile() (*os.File, error) {
 
 func (p *digitalPin) activeLowFile() (*os.File, error) {
 	return p.openFile(path.Join(p.basePath(), "active_low"))
+}
+
+func (p *digitalPin) setEdge(edge embd.Edge) error {
+	file, err := p.openFile(path.Join(p.basePath(), "edge"))
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.Write([]byte(edge))
+	return err
+}
+
+func (p *digitalPin) Watch(edge embd.Edge, callback embd.IRQEvent) error {
+	if err := p.setEdge(edge); err != nil {
+		return err
+	}
+	p.callback = callback
+	return p.drv.RegisterInterrupt(int(p.val.Fd()), p)
+}
+
+func (p *digitalPin) StopWatching() error {
+	return p.drv.UnregisterInterrupt(int(p.val.Fd()))
+}
+
+func (p *digitalPin) Signal() {
+	if p.epollInitialTrigger {
+		p.epollInitialTrigger = false
+	} else {
+		p.callback(embd.DigitalPin(p))
+	}
 }
 
 func (p *digitalPin) SetDirection(dir embd.Direction) error {
