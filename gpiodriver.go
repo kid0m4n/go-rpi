@@ -100,6 +100,12 @@ func (io *gpioDriver) RegisterInterrupt(p InterruptPin) error {
 func (io *gpioDriver) UnregisterInterrupt(p InterruptPin) error {
 
 	fd := p.Fd()
+
+	// check if we are watching this pin
+	if _, ok := io.watchEventCallbacks[fd]; !ok {
+		return nil
+	}
+
 	if err := syscall.EpollCtl(epollFD, syscall.EPOLL_CTL_DEL, fd, nil); err != nil {
 		return err
 	}

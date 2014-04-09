@@ -276,6 +276,10 @@ func (p *digitalPin) Close() error {
 		return err
 	}
 
+	if err := p.StopWatching(); err != nil {
+		return err
+	}
+
 	if !p.initialized {
 		return nil
 	}
