@@ -34,7 +34,7 @@ type gpioDriver struct {
 // NewGPIODriver returns a GPIODriver interface which allows control
 // over the GPIO subsystem.
 func NewGPIODriver(pinMap PinMap, dpf digitalPinFactory, apf analogPinFactory, ppf pwmPinFactory) GPIODriver {
-	driver := &gpioDriver{
+	return &gpioDriver{
 		pinMap: pinMap,
 		dpf:    dpf,
 		apf:    apf,
@@ -43,7 +43,6 @@ func NewGPIODriver(pinMap PinMap, dpf digitalPinFactory, apf analogPinFactory, p
 		watchEventCallbacks: map[int]InterruptPin{},
 		initializedPins:     map[string]pin{},
 	}
-	return driver
 }
 
 var epollFD int
