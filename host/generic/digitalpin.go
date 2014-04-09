@@ -111,6 +111,10 @@ func (p *digitalPin) activeLowFile() (*os.File, error) {
 	return p.openFile(path.Join(p.basePath(), "active_low"))
 }
 
+func (p *digitalPin) Fd() int {
+	return int(p.val.Fd())
+}
+
 func (p *digitalPin) setEdge(edge embd.Edge) error {
 	file, err := p.openFile(path.Join(p.basePath(), "edge"))
 	if err != nil {
@@ -127,11 +131,11 @@ func (p *digitalPin) Watch(edge embd.Edge, callback embd.IRQEvent) error {
 		return err
 	}
 	p.callback = callback
-	return p.drv.RegisterInterrupt(int(p.val.Fd()), p)
+	return p.drv.RegisterInterrupt(p)
 }
 
 func (p *digitalPin) StopWatching() error {
-	return p.drv.UnregisterInterrupt(int(p.val.Fd()))
+	return p.drv.UnregisterInterrupt(p)
 }
 
 func (p *digitalPin) Signal() {

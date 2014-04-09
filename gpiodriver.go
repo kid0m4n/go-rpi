@@ -27,7 +27,7 @@ type gpioDriver struct {
 	apf analogPinFactory
 	ppf pwmPinFactory
 
-	watchEventCallbacks map[int]DigitalPin
+	watchEventCallbacks map[int]InterruptPin
 	initializedPins     map[string]pin
 }
 
@@ -40,7 +40,7 @@ func NewGPIODriver(pinMap PinMap, dpf digitalPinFactory, apf analogPinFactory, p
 		apf:    apf,
 		ppf:    ppf,
 
-		watchEventCallbacks: map[int]DigitalPin{},
+		watchEventCallbacks: map[int]InterruptPin{},
 		initializedPins:     map[string]pin{},
 	}
 	return driver
@@ -72,11 +72,13 @@ func (io *gpioDriver) initializeEpoll() {
 	}()
 }
 
-func (io *gpioDriver) RegisterInterrupt(fd int, p DigitalPin) error {
+func (io *gpioDriver) RegisterInterrupt(p InterruptPin) error {
 
 	if epollFD == 0 {
 		io.initializeEpoll()
 	}
+
+	fd := p.Fd()
 
 	var event syscall.EpollEvent
 	event.Events = syscall.EPOLLIN | (syscall.EPOLLET & 0xffffffff) | syscall.EPOLLPRI
@@ -96,8 +98,9 @@ func (io *gpioDriver) RegisterInterrupt(fd int, p DigitalPin) error {
 	return nil
 }
 
-func (io *gpioDriver) UnregisterInterrupt(fd int) error {
+func (io *gpioDriver) UnregisterInterrupt(p InterruptPin) error {
 
+	fd := p.Fd()
 	if err := syscall.EpollCtl(epollFD, syscall.EPOLL_CTL_DEL, fd, nil); err != nil {
 		return err
 	}
