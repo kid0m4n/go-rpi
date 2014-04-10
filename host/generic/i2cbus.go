@@ -11,6 +11,7 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/golang/glog"
 	"github.com/kidoman/embd"
 )
 
@@ -58,6 +59,8 @@ func (b *i2cBus) init() error {
 		return err
 	}
 
+	glog.V(2).Infof("i2c: bus %v initialized", b.l)
+
 	b.initialized = true
 
 	return nil
@@ -65,6 +68,7 @@ func (b *i2cBus) init() error {
 
 func (b *i2cBus) setAddress(addr byte) error {
 	if addr != b.addr {
+		glog.V(2).Infof("i2c: setting bus %v address to %#02x", b.l, addr)
 		if _, _, errno := syscall.Syscall(syscall.SYS_IOCTL, b.file.Fd(), slaveCmd, uintptr(addr)); errno != 0 {
 			return syscall.Errno(errno)
 		}
@@ -78,6 +82,10 @@ func (b *i2cBus) setAddress(addr byte) error {
 func (b *i2cBus) ReadByte(addr byte) (byte, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+
+	if err := b.init(); err != nil {
+		return 0, err
+	}
 
 	if err := b.setAddress(addr); err != nil {
 		return 0, err
@@ -97,6 +105,10 @@ func (b *i2cBus) WriteByte(addr, value byte) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
+	if err := b.init(); err != nil {
+		return err
+	}
+
 	if err := b.setAddress(addr); err != nil {
 		return err
 	}
@@ -113,6 +125,10 @@ func (b *i2cBus) WriteByte(addr, value byte) error {
 func (b *i2cBus) WriteBytes(addr byte, value []byte) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+
+	if err := b.init(); err != nil {
+		return err
+	}
 
 	if err := b.setAddress(addr); err != nil {
 		return err
@@ -137,6 +153,10 @@ func (b *i2cBus) WriteBytes(addr byte, value []byte) error {
 func (b *i2cBus) ReadFromReg(addr, reg byte, value []byte) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+
+	if err := b.init(); err != nil {
+		return err
+	}
 
 	if err := b.setAddress(addr); err != nil {
 		return err
@@ -187,6 +207,10 @@ func (b *i2cBus) WriteToReg(addr, reg byte, value []byte) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
+	if err := b.init(); err != nil {
+		return err
+	}
+
 	if err := b.setAddress(addr); err != nil {
 		return err
 	}
@@ -216,6 +240,10 @@ func (b *i2cBus) WriteToReg(addr, reg byte, value []byte) error {
 func (b *i2cBus) WriteByteToReg(addr, reg, value byte) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+
+	if err := b.init(); err != nil {
+		return err
+	}
 
 	if err := b.setAddress(addr); err != nil {
 		return err
@@ -247,6 +275,10 @@ func (b *i2cBus) WriteByteToReg(addr, reg, value byte) error {
 func (b *i2cBus) WriteWordToReg(addr, reg byte, value uint16) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+
+	if err := b.init(); err != nil {
+		return err
+	}
 
 	if err := b.setAddress(addr); err != nil {
 		return err
