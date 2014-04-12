@@ -127,6 +127,10 @@ func (p *digitalPin) setEdge(edge embd.Edge) error {
 }
 
 func (p *digitalPin) Watch(edge embd.Edge, callback embd.IRQEvent) error {
+	if err := p.SetDirection(embd.In); err != nil {
+		return err
+	}
+
 	if err := p.setEdge(edge); err != nil {
 		return err
 	}
