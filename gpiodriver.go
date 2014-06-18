@@ -5,6 +5,11 @@ package embd
 import (
 	"errors"
 	"fmt"
+	"syscall"
+)
+
+const (
+	MaxGPIOInterrupt = 64
 )
 
 type pin interface {
@@ -22,7 +27,8 @@ type gpioDriver struct {
 	apf analogPinFactory
 	ppf pwmPinFactory
 
-	initializedPins map[string]pin
+	watchEventCallbacks map[int]InterruptPin
+	initializedPins     map[string]pin
 }
 
 // NewGPIODriver returns a GPIODriver interface which allows control
@@ -34,8 +40,83 @@ func NewGPIODriver(pinMap PinMap, dpf digitalPinFactory, apf analogPinFactory, p
 		apf:    apf,
 		ppf:    ppf,
 
-		initializedPins: map[string]pin{},
+		watchEventCallbacks: map[int]InterruptPin{},
+		initializedPins:     map[string]pin{},
 	}
+}
+
+var epollFD int
+
+func (io *gpioDriver) initializeEpoll() {
+	var err error
+	epollFD, err = syscall.EpollCreate1(0)
+	if err != nil {
+		panic(fmt.Sprintf("Unable to create epoll FD: ", err.Error()))
+	}
+
+	go func() {
+		var epollEvents [MaxGPIOInterrupt]syscall.EpollEvent
+
+		for {
+			numEvents, err := syscall.EpollWait(epollFD, epollEvents[:], -1)
+			if err != nil {
+				panic(fmt.Sprintf("EpollWait error: %s", err.Error()))
+			}
+			for i := 0; i < numEvents; i++ {
+				if eventPin, exists := io.watchEventCallbacks[int(epollEvents[i].Fd)]; exists {
+					eventPin.Signal()
+				}
+			}
+		}
+	}()
+}
+
+func (io *gpioDriver) RegisterInterrupt(p InterruptPin) error {
+
+	if epollFD == 0 {
+		io.initializeEpoll()
+	}
+
+	fd := p.Fd()
+
+	var event syscall.EpollEvent
+	event.Events = syscall.EPOLLIN | (syscall.EPOLLET & 0xffffffff) | syscall.EPOLLPRI
+
+	io.watchEventCallbacks[fd] = p
+
+	if err := syscall.SetNonblock(fd, true); err != nil {
+		return err
+	}
+
+	event.Fd = int32(fd)
+
+	if err := syscall.EpollCtl(epollFD, syscall.EPOLL_CTL_ADD, fd, &event); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (io *gpioDriver) UnregisterInterrupt(p InterruptPin) error {
+
+	fd := p.Fd()
+
+	// check if we are watching this pin
+	if _, ok := io.watchEventCallbacks[fd]; !ok {
+		return nil
+	}
+
+	if err := syscall.EpollCtl(epollFD, syscall.EPOLL_CTL_DEL, fd, nil); err != nil {
+		return err
+	}
+
+	if err := syscall.SetNonblock(fd, false); err != nil {
+		return err
+	}
+
+	delete(io.watchEventCallbacks, fd)
+
+	return nil
 }
 
 func (io *gpioDriver) Unregister(id string) error {

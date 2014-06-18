@@ -23,8 +23,39 @@ const (
 	High
 )
 
+// Edge trigger for GPIO Interrupt
+type Edge string
+
+// IRQ event function definition
+type IRQEvent func(pin DigitalPin)
+
+// Available Edge trigger for Interrupt
+const (
+	EdgeNone    Edge = "none"
+	EdgeRising  Edge = "rising"
+	EdgeFalling Edge = "falling"
+	EdgeBoth    Edge = "both"
+)
+
+// InterruptPin implements access to a Interruptable capable GPIO pin.
+type InterruptPin interface {
+	// return file handler for GPIO
+	Fd() int
+
+	// Start watching this pin for interrupt
+	Watch(edge Edge, callback IRQEvent) error
+
+	// Stop watching this pin for interrupt
+	StopWatching() error
+
+	// Signal that an Interrupt has happened
+	Signal()
+}
+
 // DigitalPin implements access to a digital IO capable GPIO pin.
 type DigitalPin interface {
+	InterruptPin
+
 	// N returns the logical GPIO number.
 	N() int
 
@@ -101,8 +132,18 @@ type PWMPin interface {
 	Close() error
 }
 
+type GPIOInterrupt interface {
+	// Register a pin as an interrupt
+	RegisterInterrupt(p InterruptPin) error
+
+	// Unregister a pin as an interrupt
+	UnregisterInterrupt(p InterruptPin) error
+}
+
 // GPIODriver implements a generic GPIO driver.
 type GPIODriver interface {
+	GPIOInterrupt
+
 	// Unregister unregisters the pin from the driver. Should be called when the pin is closed.
 	Unregister(string) error
 
@@ -217,6 +258,22 @@ func PullDown(key interface{}) error {
 	}
 
 	return pin.PullDown()
+}
+
+func Watch(key interface{}, edge Edge, callback IRQEvent) error {
+	pin, err := NewDigitalPin(key)
+	if err != nil {
+		return err
+	}
+	return pin.Watch(edge, callback)
+}
+
+func StopWatching(key interface{}) error {
+	pin, err := NewDigitalPin(key)
+	if err != nil {
+		return err
+	}
+	return pin.StopWatching()
 }
 
 // NewAnalogPin returns a AnalogPin interface which allows control over
