@@ -7,9 +7,8 @@ import (
 	"time"
 
 	"github.com/kidoman/embd"
-	"github.com/kidoman/embd/sensor/isl29125"
-
 	_ "github.com/kidoman/embd/host/all"
+	"github.com/kidoman/embd/sensor/isl29125"
 )
 
 func main() {
@@ -23,6 +22,7 @@ func main() {
 
 	isl := isl29125.New(isl29125.DefaultConfig, bus)
 	defer isl.Close()
+	isl.Init()
 
 	for {
 		r, err := isl.Reading()
