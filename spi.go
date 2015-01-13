@@ -33,6 +33,9 @@ type SPIBus interface {
 	// ReceiveByte receives a byte data.
 	ReceiveByte() (byte, error)
 
+	// WriteByte writes a buffer of data
+        Write([]uint8) (error)
+
 	// Close releases the resources associated with the bus.
 	Close() error
 }
