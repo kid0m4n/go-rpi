@@ -93,9 +93,40 @@ func getPiRevision() (int, error) {
 	return 4, nil
 }
 
+func cpuInfo() (string, string, int, error) {
+	cpuinfo, err := ioutil.ReadFile("/proc/cpuinfo")
+	if err != nil {
+		return "", "", 0, err
+	}
+	revision := 0
+	model := ""
+	hardware := ""
+
+	for _, line := range strings.Split(string(cpuinfo), "\n") {
+		fields := strings.Split(line, ":")
+		if len(fields) <= 0 {
+			continue
+		}
+		if strings.HasPrefix(fields[0], "Revision") {
+			rev, err := strconv.ParseInt(fields[1], 16, 8)
+			if err != nil {
+				continue
+			}
+			revision = int(rev)
+		} else if strings.HasPrefix(fields[0], "Hardware") {
+			hardware = fields[1]
+		} else if strings.HasPrefix(fields[0], "model name") {
+			model = fields[1]
+		}
+	}
+	return model, hardware, revision, nil
+}
+
 // DetectHost returns the detected host and its revision number.
 func DetectHost() (Host, int, error) {
+
 	major, minor, patch, err := kernelVersion()
+
 	if err != nil {
 		return HostNull, 0, err
 	}
@@ -103,23 +134,23 @@ func DetectHost() (Host, int, error) {
 	if major < 3 || (major == 3 && minor < 8) {
 		return HostNull, 0, fmt.Errorf("embd: linux kernel versions lower than 3.8 are not supported. you have %v.%v.%v", major, minor, patch)
 	}
-
-	node, err := nodeName()
+	
+	model, hardware, revision, err := cpuInfo()
 	if err != nil {
 		return HostNull, 0, err
 	}
 
-	var host Host
-	var rev int
-
-	switch node {
-	case "raspberrypi":
-		host = HostRPi
-		rev, _ = getPiRevision()
-	case "beaglebone":
+	var host Host = HostNull
+	var rev int = 0
+	
+	if strings.Contains(model, "ARMv7") && (strings.Contains(hardware,"AM33XX") || strings.Contains(hardware,"AM335X")) {
 		host = HostBBB
-	default:
-		return HostNull, 0, fmt.Errorf("embd: your host %q is not supported at this moment. please request support at https://github.com/kidoman/embd/issues", node)
+		rev = revision
+	} else if strings.Contains(hardware,"BCM2708") {
+		host = HostRPi
+		rev = revision
+	} else {
+		return HostNull, 0, fmt.Errorf("embd: your host %q : %q is not supported at this moment. please request support at https://github.com/kidoman/embd/issues", host, model)
 	}
 
 	return host, rev, nil
