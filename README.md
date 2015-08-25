@@ -4,7 +4,7 @@
 
 It allows you to start your hardware hack on easily available hobby boards (like the Raspberry Pi, BeagleBone Black, etc.) by giving you staight forward access to the board's capabilities as well as a plethora of **sensors** (like accelerometers, gyroscopes, thermometers, etc.) and **controllers** (PWM generators, digital-to-analog convertors) for which we have written drivers. And when things get serious, you dont have to throw away the code. You carry forward the effort onto more custom designed boards where the HAL abstraction of EMBD will save you precious time.
 
-Development supported and sponsored by [**ThoughtWorks**](http://www.thoughtworks.com/)
+Development supported and sponsored by [**SoStronk**](https://www.sostronk.com) and [**ThoughtWorks**](http://www.thoughtworks.com/) 
 
 Also, you might be interested in: [Why Golang?](https://github.com/kidoman/embd/wiki/Why-Go)
 
@@ -66,9 +66,10 @@ Join the [mailing list](https://groups.google.com/forum/#!forum/go-embd)
 
 ## Platforms Supported
 
-* [RaspberryPi](http://www.raspberrypi.org/)
+* [RaspberryPi](http://www.raspberrypi.org/) (including [A+](http://www.raspberrypi.org/products/model-a-plus/) and [B+](http://www.raspberrypi.org/products/model-b-plus/))
+* [RaspberryPi 2](http://www.raspberrypi.org/)
 * [BeagleBone Black](http://beagleboard.org/Products/BeagleBone%20Black)
-* [Intel Galileo](http://www.intel.com/content/www/us/en/do-it-yourself/galileo-maker-quark-board.html) **coming soon**
+* [Intel Edison](http://www.intel.com/content/www/us/en/do-it-yourself/galileo-maker-quark-board.html) **coming soon**
 * [Radxa](http://radxa.com/) **coming soon**
 * [Cubietruck](http://www.cubietruck.com/) **coming soon**
 * Bring Your Own **coming soon**
@@ -224,7 +225,7 @@ platforms.
 
 * **US020** Ultrasonic proximity sensor [Documentation](http://godoc.org/github.com/kidoman/embd/sensor/us020), [Product Page](http://www.digibay.in/sensor/object-detection-and-proximity?product_id=239)
 
-* **BH1750FVI** Luminosity sensor [Documentation](http://godoc.org/github.com/kidoman/embd/sensor/us020), [Datasheet](http://www.elechouse.com/elechouse/images/product/Digital%20light%20Sensor/bh1750fvi-e.pdf)
+* **BH1750FVI** Luminosity sensor [Documentation](http://godoc.org/github.com/kidoman/embd/sensor/bh1750fvi), [Datasheet](http://www.elechouse.com/elechouse/images/product/Digital%20light%20Sensor/bh1750fvi-e.pdf)
 
 ## Interfaces
 
