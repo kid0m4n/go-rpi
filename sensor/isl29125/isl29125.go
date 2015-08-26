@@ -112,7 +112,8 @@ type ISL29125 struct {
 	readings chan *Reading
 	quit     chan bool
 
-	mode uint8
+	mode        uint8
+	initialized bool
 }
 
 // New returns an ISL29125 for a given config.
@@ -121,7 +122,12 @@ func New(config uint8, bus embd.I2CBus) *ISL29125 {
 	return &ISL29125{Bus: bus, Poll: pollDelay, mode: config}
 }
 
-func (i *ISL29125) Init() error {
+// Setup initializes the sensor.
+func (i *ISL29125) setup() error {
+
+	if i.initialized {
+		return nil
+	}
 
 	// verify that i2c device is reachable on specified bus and that it reports back the correct ID
 	id, err := i.Bus.ReadByteFromReg(SensorAddr, RegisterDeviceID)
@@ -169,11 +175,15 @@ func (i *ISL29125) Init() error {
 		return err
 	}
 
+	i.initialized = true
 	return nil
 
 }
 
 func (i *ISL29125) getReading() (*Reading, error) {
+	if err := i.setup(); err != nil {
+		return nil, err
+	}
 
 	glog.V(1).Info("Getting reading")
 	red, err := i.Bus.ReadWordFromReg(SensorAddr, RegisterRedLow)

@@ -22,7 +22,6 @@ func main() {
 
 	isl := isl29125.New(isl29125.DefaultConfig, bus)
 	defer isl.Close()
-	isl.Init()
 
 	for {
 		r, err := isl.Reading()
