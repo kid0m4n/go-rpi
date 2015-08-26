@@ -94,7 +94,7 @@ const (
 	CmdReset     = 0x46
 )
 
-// Reading represents a single reading from an RGB light sensor
+// Reading represents a single reading from an RGB light sensor.
 type Reading struct {
 	Red        uint16
 	Green      uint16
@@ -104,7 +104,7 @@ type Reading struct {
 	Resolution int
 }
 
-// ISL29125 represents an RGB light sensor
+// ISL29125 represents an RGB light sensor.
 type ISL29125 struct {
 	Bus  embd.I2CBus
 	Poll int
@@ -115,9 +115,9 @@ type ISL29125 struct {
 	mode uint8
 }
 
-// New returns an ISL29125 for a given config
+// New returns an ISL29125 for a given config.
 func New(config uint8, bus embd.I2CBus) *ISL29125 {
-	glog.Info("Creating new ISL29125")
+	glog.V(1).Info("Creating new ISL29125")
 	return &ISL29125{Bus: bus, Poll: pollDelay, mode: config}
 }
 
@@ -147,28 +147,25 @@ func (i *ISL29125) Init() error {
 	time.Sleep(100 * time.Millisecond)
 
 	// verify status after reset is ready
-	status, err := i.Bus.ReadByteFromReg(SensorAddr, CmdGetStatus)
-	if err != nil {
+	if status, err := i.Bus.ReadByteFromReg(SensorAddr, CmdGetStatus); err != nil {
 		return err
 	}
+
 	if status != FlagReady {
 		return fmt.Errorf("Invalid device status. Expected [%x] but device reports [%x]", FlagReady, status)
 	}
 
 	// set config 1 to user specified mode
-	err = i.Bus.WriteByteToReg(SensorAddr, RegisterConfig1, i.mode)
-	if err != nil {
+	if err = i.Bus.WriteByteToReg(SensorAddr, RegisterConfig1, i.mode); err != nil {
 		return err
 	}
 	// set config 2 to fixed value
-	err = i.Bus.WriteByteToReg(SensorAddr, RegisterConfig2, IRAdjustHigh)
-	if err != nil {
+	if err = i.Bus.WriteByteToReg(SensorAddr, RegisterConfig2, IRAdjustHigh); err != nil {
 		return err
 	}
 
 	// set config 3 to fixed value
-	err = i.Bus.WriteByteToReg(SensorAddr, RegisterConfig3, 0x0)
-	if err != nil {
+	if err = i.Bus.WriteByteToReg(SensorAddr, RegisterConfig3, 0x0); err != nil {
 		return err
 	}
 
@@ -178,7 +175,7 @@ func (i *ISL29125) Init() error {
 
 func (i *ISL29125) getReading() (*Reading, error) {
 
-	glog.Info("Getting reading")
+	glog.V(1).Info("Getting reading")
 	red, err := i.Bus.ReadWordFromReg(SensorAddr, RegisterRedLow)
 	if err != nil {
 		return nil, err
@@ -195,7 +192,7 @@ func (i *ISL29125) getReading() (*Reading, error) {
 	return &Reading{Red: red, Green: green, Blue: blue}, nil
 }
 
-// Reading returns a single sensor reading
+// Reading returns a single sensor reading.
 func (i *ISL29125) Reading() (*Reading, error) {
 	select {
 	case r := <-i.readings:
@@ -207,11 +204,12 @@ func (i *ISL29125) Reading() (*Reading, error) {
 
 // Run starts continuous sensor data acquisition loop.
 func (i *ISL29125) Run() {
-	glog.Info("Running sensor")
+	glog.V(1).Info("Running sensor")
 	go func() {
 		i.quit = make(chan bool)
 		i.readings = make(chan *Reading)
-		timer := time.Tick(time.Duration(i.Poll) * time.Millisecond)
+		timer := time.NewTicker(time.Duration(i.Poll) * time.Millisecond)
+		defer timer.Stop()
 
 		var reading *Reading
 
@@ -232,9 +230,9 @@ func (i *ISL29125) Run() {
 	return
 }
 
-// Close down sensor
+// Close down sensor.
 func (i *ISL29125) Close() {
-	glog.Info("Closing sensor")
+	glog.V(1).Info("Closing sensor")
 	if i.quit != nil {
 		i.quit <- true
 	}
