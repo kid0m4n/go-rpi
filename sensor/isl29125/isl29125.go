@@ -153,7 +153,9 @@ func (i *ISL29125) setup() error {
 	time.Sleep(100 * time.Millisecond)
 
 	// verify status after reset is ready
-	if status, err := i.Bus.ReadByteFromReg(SensorAddr, CmdGetStatus); err != nil {
+	status, err := i.Bus.ReadByteFromReg(SensorAddr, CmdGetStatus)
+
+	if err != nil {
 		return err
 	}
 
@@ -218,15 +220,15 @@ func (i *ISL29125) Run() {
 	go func() {
 		i.quit = make(chan bool)
 		i.readings = make(chan *Reading)
-		timer := time.NewTicker(time.Duration(i.Poll) * time.Millisecond)
-		defer timer.Stop()
+		ticker := time.NewTicker(time.Duration(i.Poll) * time.Millisecond)
+		defer ticker.Stop()
 
 		var reading *Reading
 
 		for {
 			select {
 			case i.readings <- reading:
-			case <-timer:
+			case <-ticker.C:
 				r, err := i.getReading()
 				if err == nil {
 					reading = r
