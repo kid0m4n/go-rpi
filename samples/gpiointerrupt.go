@@ -6,9 +6,9 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/kidoman/embd"
+	"github.com/wujiang/embd"
 
-	_ "github.com/kidoman/embd/host/all"
+	_ "github.com/wujiang/embd/host/all"
 )
 
 func main() {

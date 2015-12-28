@@ -9,8 +9,8 @@
 package rpi
 
 import (
-	"github.com/kidoman/embd"
-	"github.com/kidoman/embd/host/generic"
+	"github.com/wujiang/embd"
+	"github.com/wujiang/embd/host/generic"
 )
 
 var spiDeviceMinor = byte(0)

@@ -8,7 +8,7 @@ import (
 	"unsafe"
 
 	"github.com/golang/glog"
-	"github.com/kidoman/embd"
+	"github.com/wujiang/embd"
 )
 
 const (
@@ -36,6 +36,9 @@ type spiIOCTransfer struct {
 	speedHz     uint32
 	delayus     uint16
 	bitsPerWord uint8
+
+	csChange uint8
+	pad      uint32
 }
 
 type spiBus struct {

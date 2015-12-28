@@ -9,10 +9,10 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/kidoman/embd"
-	"github.com/kidoman/embd/sensor/l3gd20"
+	"github.com/wujiang/embd"
+	"github.com/wujiang/embd/sensor/l3gd20"
 
-	_ "github.com/kidoman/embd/host/all"
+	_ "github.com/wujiang/embd/host/all"
 )
 
 func main() {

@@ -5,8 +5,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/kidoman/embd"
-	_ "github.com/kidoman/embd/host/all"
+	"github.com/wujiang/embd"
+	_ "github.com/wujiang/embd/host/all"
 )
 
 func main() {
@@ -24,25 +24,25 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("received data is: %v", dataBuf)
+	fmt.Println("received data is:", dataBuf)
 
 	dataReceived, err := spiBus.ReceiveData(3)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("received data is: %v", dataReceived)
+	fmt.Println("received data is:", dataReceived)
 
 	dataByte := byte(1)
 	receivedByte, err := spiBus.TransferAndReceiveByte(dataByte)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("received byte is: %v", receivedByte)
+	fmt.Println("received byte is:", receivedByte)
 
 	receivedByte, err = spiBus.ReceiveByte()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("received byte is: %v", receivedByte)
+	fmt.Println("received byte is:", receivedByte)
 }
