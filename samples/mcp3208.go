@@ -9,9 +9,8 @@ import (
 	"time"
 
 	"github.com/kidoman/embd"
-	// "github.com/kidoman/embd/convertors/mcp3008"
+	  "github.com/kidoman/embd/convertors/mcp3008"
 	_ "github.com/kidoman/embd/host/all"
-	"github.com/npotts/embd/convertors/mcp3008"
 )
 
 const (
