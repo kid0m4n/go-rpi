@@ -8,10 +8,15 @@ import (
 
 // MCP3008 represents a mcp3008 8bit DAC.
 type MCP3008 struct {
-	Mode byte
-
-	Bus embd.SPIBus
+	Mode, Bits byte
+	Bus        embd.SPIBus
 }
+
+//How many bits does the
+const (
+	Bits10 = iota //10 bit MCP300** family
+	Bits12        //12 bit MCP320** family
+)
 
 const (
 	// SingleMode represents the single-ended mode for the mcp3008.
@@ -22,8 +27,8 @@ const (
 )
 
 // New creates a representation of the mcp3008 convertor
-func New(mode byte, bus embd.SPIBus) *MCP3008 {
-	return &MCP3008{mode, bus}
+func New(mode, bits byte, bus embd.SPIBus) *MCP3008 {
+	return &MCP3008{Mode: mode, Bus: bus}
 }
 
 const (
@@ -41,6 +46,13 @@ func (m *MCP3008) AnalogValueAt(chanNum int) (int, error) {
 	if err := m.Bus.TransferAndReceiveData(data[:]); err != nil {
 		return 0, err
 	}
+	switch m.Bits {
+	case Bits10:
+		return int(uint16(data[1]&0x03)<<8 | uint16(data[2])), nil
+	case Bits12:
+		return int(uint16(data[1]&0x0f)<<8 | uint16(data[2])), nil
+	default:
+		panic("mcp3008: unknown number of bits")
+	}
 
-	return int(uint16(data[1]&0x03)<<8 | uint16(data[2])), nil
 }
