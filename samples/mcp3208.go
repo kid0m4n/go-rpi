@@ -41,7 +41,7 @@ func main() {
 		time.Sleep(1 * time.Second)
 		val, err := adc.AnalogValueAt(0)
 		if err != nil {
-			panic(err)
+			fmt.Println("Error: ", err)
 		}
 		fmt.Printf("analog value is: %v\n", val)
 	}
