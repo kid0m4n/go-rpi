@@ -44,8 +44,7 @@ func (m *MCP3008) AnalogValueAt(chanNum int) (int, error) {
 		data[1] = uint8(m.Mode)<<7 | uint8(chanNum)<<4
 		data[2] = 0
 	case Bits12:
-		//[0x06| (channel >> 2), channel << 6, 0]
-		data[0] = 0x06 | (uint8(chanNum) >> 2)
+		data[0] = (uint8(startBit) << 2) + (uint8(m.Mode) << 1) + (uint8(chanNum) >> 2)
 		data[1] = uint8(chanNum) << 6
 		data[2] = 0
 	}
