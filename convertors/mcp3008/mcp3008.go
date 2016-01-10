@@ -38,9 +38,17 @@ const (
 // AnalogValueAt returns the analog value at the given channel of the convertor.
 func (m *MCP3008) AnalogValueAt(chanNum int) (int, error) {
 	var data [3]uint8
-	data[0] = startBit
-	data[1] = uint8(m.Mode)<<7 | uint8(chanNum)<<4
-	data[2] = 0
+	switch m.Bits {
+	case Bits10:
+		data[0] = startBit
+		data[1] = uint8(m.Mode)<<7 | uint8(chanNum)<<4
+		data[2] = 0
+	case Bits12:
+		//[0x06| (channel >> 2), channel << 6, 0]
+		data[0] = 0x06 | (uint8(chanNum) >> 2)
+		data[1] = uint8(chanNum) << 6
+		data[2] = 0
+	}
 
 	glog.V(2).Infof("mcp3008: sendingdata buffer %v", data)
 	if err := m.Bus.TransferAndReceiveData(data[:]); err != nil {
