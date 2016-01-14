@@ -32,7 +32,7 @@ func main() {
 	spiBus := embd.NewSPIBus(embd.SPIMode0, channel, speed, bpw, delay)
 	defer spiBus.Close()
 
-	adc := mcp3008.New(mcp3008.SingleMode, spiBus)
+	adc := mcp3008.New(mcp3008.SingleMode, mcp3008.Bits10, spiBus)
 
 	for i := 0; i < 20; i++ {
 		time.Sleep(1 * time.Second)
