@@ -23,7 +23,7 @@ func main() {
 
 	bus := embd.NewI2CBus(1)
 
-	ina := ina219.New(bus, 0x40, 0.1)
+	ina := ina219.New(bus, 0x40, 0.001)
 	defer ina.Close()
 
 	for {
@@ -42,7 +42,12 @@ func main() {
 			panic(err)
 		}
 
-		fmt.Printf("Shunt Voltage=%v  Voltage=%v Current=%v\n", sv, v, c)
+		p, err := ina.Power()
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Printf("Shunt Voltage=%v  Voltage=%v Current=%v Power=%v \n", sv, v, c, p)
 
 		time.Sleep(500 * time.Millisecond)
 	}

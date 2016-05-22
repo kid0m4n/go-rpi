@@ -3,6 +3,7 @@
 // interfcace.
 
 // TODO - add options to config voltage range, sensitivity and averaging
+// TODO - add documentation
 
 package ina219
 
@@ -54,7 +55,10 @@ func (d *INA219) setup() error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	config := uint16(0x219F) // 12, bit no integration, 32v bus range , 40mV shunt range
+	//config := uint16(0x219F) // 12, bit no integration, 32v bus range , 40mV shunt range
+	//config := uint16(0x2777) // 12, bit 64x integration, 32v bus range , 40mV shunt range
+	config := uint16(0x2F77) // 12, bit 64x integration, 32v bus range , 80mV shunt range
+	
 	err := d.Bus.WriteWordToReg(d.address, configReg, config)
 	if err != nil {
 		return err
@@ -62,7 +66,7 @@ func (d *INA219) setup() error {
 
 	calib := uint16(0.5 + 40.96/d.shuntResitance)
 
-	err = d.Bus.WriteWordToReg(d.address, calibReg, calib) // .1 ohm sense resitor
+	err = d.Bus.WriteWordToReg(d.address, calibReg, calib) 
 	if err != nil {
 		return err
 	}
@@ -84,7 +88,7 @@ func (d *INA219) ShuntVoltage() (float64, error) {
 		return math.NaN(), err
 	}
 
-	voltage := float64(v) / 100000.0
+	voltage := float64( int16(v) ) / 100000.0
 
 	return voltage, nil
 }
@@ -114,7 +118,22 @@ func (d *INA219) Current() (float64, error) {
 		return math.NaN(), err
 	}
 
-	current := float64(v) / 1000.0
+	current := float64( int16(v) ) / 1000.0
+
+	return current, nil
+}
+
+func (d *INA219) Power() (float64, error) {
+	if err := d.setup(); err != nil {
+		return math.NaN(), err
+	}
+
+	v, err := d.Bus.ReadWordFromReg(d.address, powerReg)
+	if err != nil {
+		return math.NaN(), err
+	}
+
+	current := float64( int16(v) ) / 50.0
 
 	return current, nil
 }
