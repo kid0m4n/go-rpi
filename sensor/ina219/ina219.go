@@ -3,6 +3,7 @@
 // interfcace.
 
 // TODO - add options to config voltage range, sensitivity and averaging
+// TODO - Current and Power can overflow within normal ranges
 // TODO - add documentation
 
 package ina219
@@ -24,7 +25,7 @@ const (
 	calibReg   = 0x05
 )
 
-// INA219 represents a Bosch INA219 current sensor.
+// INA219 represents an INA219 current sensor.
 type INA219 struct {
 	Bus embd.I2CBus
 
@@ -58,7 +59,7 @@ func (d *INA219) setup() error {
 	//config := uint16(0x219F) // 12, bit no integration, 32v bus range , 40mV shunt range
 	//config := uint16(0x2777) // 12, bit 64x integration, 32v bus range , 40mV shunt range
 	config := uint16(0x2F77) // 12, bit 64x integration, 32v bus range , 80mV shunt range
-	
+
 	err := d.Bus.WriteWordToReg(d.address, configReg, config)
 	if err != nil {
 		return err
@@ -66,7 +67,7 @@ func (d *INA219) setup() error {
 
 	calib := uint16(0.5 + 40.96/d.shuntResitance)
 
-	err = d.Bus.WriteWordToReg(d.address, calibReg, calib) 
+	err = d.Bus.WriteWordToReg(d.address, calibReg, calib)
 	if err != nil {
 		return err
 	}
@@ -88,7 +89,7 @@ func (d *INA219) ShuntVoltage() (float64, error) {
 		return math.NaN(), err
 	}
 
-	voltage := float64( int16(v) ) / 100000.0
+	voltage := float64(int16(v)) / 100000.0
 
 	return voltage, nil
 }
@@ -118,7 +119,7 @@ func (d *INA219) Current() (float64, error) {
 		return math.NaN(), err
 	}
 
-	current := float64( int16(v) ) / 1000.0
+	current := float64(int16(v)) / 1000.0
 
 	return current, nil
 }
@@ -133,7 +134,7 @@ func (d *INA219) Power() (float64, error) {
 		return math.NaN(), err
 	}
 
-	current := float64( int16(v) ) / 50.0
+	current := float64(int16(v)) / 50.0
 
 	return current, nil
 }
