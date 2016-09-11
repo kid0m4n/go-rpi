@@ -43,6 +43,11 @@ func (p *digitalPin) init() error {
 	if p.initialized {
 		return nil
 	}
+	defer func() {
+		if !p.initialized {
+			p.unexport()
+		}
+	}()
 
 	var err error
 	if err = p.export(); err != nil {
