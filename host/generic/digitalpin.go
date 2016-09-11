@@ -7,6 +7,7 @@ package generic
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"strconv"
@@ -42,6 +43,11 @@ func (p *digitalPin) init() error {
 	if p.initialized {
 		return nil
 	}
+	defer func() {
+		if !p.initialized {
+			p.unexport()
+		}
+	}()
 
 	var err error
 	if err = p.export(); err != nil {
@@ -67,8 +73,9 @@ func (p *digitalPin) export() error {
 	if err != nil {
 		return err
 	}
-	defer exporter.Close()
 	_, err = exporter.WriteString(strconv.Itoa(p.n))
+	exporter.Close()
+	time.Sleep(time.Second / 2)
 	return err
 }
 
@@ -77,8 +84,9 @@ func (p *digitalPin) unexport() error {
 	if err != nil {
 		return err
 	}
-	defer unexporter.Close()
 	_, err = unexporter.WriteString(strconv.Itoa(p.n))
+	unexporter.Close()
+	time.Sleep(time.Second / 2)
 	return err
 }
 
@@ -233,7 +241,7 @@ func (p *digitalPin) Close() error {
 	}
 
 	if err := p.drv.Unregister(p.id); err != nil {
-		return err
+		log.Println("Driver unregister error:", err.Error())
 	}
 
 	if !p.initialized {
