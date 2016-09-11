@@ -7,6 +7,7 @@ package generic
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"strconv"
@@ -233,7 +234,7 @@ func (p *digitalPin) Close() error {
 	}
 
 	if err := p.drv.Unregister(p.id); err != nil {
-		return err
+		log.Println("Driver unregister error:", err.Error())
 	}
 
 	if !p.initialized {
