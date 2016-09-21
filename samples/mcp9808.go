@@ -10,18 +10,15 @@ import (
 	"github.com/kidoman/embd"
 	_ "github.com/kidoman/embd/host/rpi"
 	"github.com/kidoman/embd/sensor/mcp9808"
-	"github.com/stianeikeland/go-rpio"
 )
 
 func main() {
-	if err := embd.InitI2C(); err != nil {
-		panic(err)
-	}
+	bus := embd.NewI2CBus(1)
 	defer embd.CloseI2C()
 
-	bus := embd.NewI2CBus(1)
-
 	therm := mcp9808.New(bus)
+	// set sensor to low power mode when we're done
+	defer therm.SetShutdownMode(true)
 
 	if id, err := therm.ManufacturerID(); err == nil {
 		fmt.Printf("Manufacturer ID: 0x%x\n", id)
@@ -32,51 +29,36 @@ func main() {
 	}
 
 	therm.SetShutdownMode(false)
-
-	//therm.SetWindowTempLock(false)
-	// therm.SetCriticalTempLock(false)
-
-	config, err := therm.WriteConfig()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("New Config: %b\n", config)
+	therm.SetAlertMode(true)
+	therm.SetInterruptClear(true)
+	therm.SetAlertStatus(true)
 	therm.SetAlertControl(true)
-	//therm.SetInterruptClear(true)
-	//therm.SetAlertStatus(true)
-	//therm.SetAlertSelect(false)
-	//therm.SetAlertPolarity(true)
-	//therm.SetAlertMode(true)
-	config, err = therm.WriteConfig()
-	if err != nil {
+	therm.SetAlertSelect(false)
+	therm.SetAlertPolarity(false)
+
+	config, _ := therm.Config()
+	fmt.Printf("New Config: %b\n", config)
+
+	if err := therm.SetCriticalTemp(TempFToC(90)); err != nil {
 		panic(err)
 	}
-	fmt.Printf("New Config: %b\n", config)
 
 	if err := therm.SetWindowTempUpper(TempFToC(80)); err != nil {
 		panic(err)
 	}
+	fmt.Printf("Set upper temp to %fC\n", TempFToC(80))
 
-	temp, err := therm.AmbientTemp()
+	upperTemp, _ := therm.WindowTempUpper()
+	fmt.Printf("Upper Temp Limit set to: %fC\n", upperTemp)
+
+	alert, err := embd.NewDigitalPin(23)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Temp is %f\n", TempCToF(temp.CelsiusDeg))
-
-	if err := embd.InitGPIO(); err != nil {
-		panic(err)
-	}
-	if err := rpio.Open(); err != nil {
-		log.Fatalf("Error: %v\n", err)
-	}
-	defer rpio.Close()
 	defer embd.CloseGPIO()
 
-	alert := rpio.Pin(4)
-	alert.Input()
-	alert.PullDown()
-
-	timer := time.Tick(time.Duration(5) * time.Second)
+	alert.SetDirection(embd.In)
+	alert.PullUp()
 
 	cancel := make(chan bool)
 	go func() {
@@ -84,17 +66,26 @@ func main() {
 		reader.ReadString('\n')
 		cancel <- true
 	}()
+
+	timer := time.Tick(time.Duration(5) * time.Second)
 	for {
 		select {
 		case <-timer:
 			temp, err := therm.AmbientTemp()
-			if err == nil {
-				fmt.Printf("Ambient temp is: %f\n", TempCToF(temp.CelsiusDeg))
+			if err != nil {
+				fmt.Printf("Error reading temp: %s\n", err.Error())
+			} else {
+				fmt.Printf("Current temp is: %fF (%fC), Window Alert: %v, Critical Alert: %v\n",
+					TempCToF(temp.CelsiusDeg), temp.CelsiusDeg, temp.AboveUpper || temp.BelowLower, temp.AboveCritical)
 			}
-			status := alert.Read()
+			status, err := alert.Read()
+			if err != nil {
+				log.Printf("Error reading pin: %s\n", err.Error())
+				continue
+			}
 			fmt.Printf("Status: %d\n\n", status)
-			if status == rpio.High {
-				fmt.Println("Alert temp has been reached.")
+			if status == embd.High {
+				fmt.Println("Alert temp has been reached!")
 				return
 			}
 		case <-cancel:
