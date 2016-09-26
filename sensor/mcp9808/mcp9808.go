@@ -324,7 +324,8 @@ func convertWordToTempC(temp uint16) float64 {
 
 	tempRead := wholeNum + fraction
 
-	if !(temp&(1<<12) == 0) { // read sign bit
+	// read sign bit
+	if temp>>12 == 1 {
 		tempRead *= -1
 	}
 	return tempRead
@@ -355,11 +356,7 @@ func (d *MCP9808) setTemp(reg byte, newTemp float64) error {
 		roundedFrac = 4
 	}
 	newTempWord := signBit + uint16(wholeNum)*16 + roundedFrac*4
-
-	if err := d.Bus.WriteWordToReg(address, reg, newTempWord); err != nil {
-		return err
-	}
-	return nil
+	return d.Bus.WriteWordToReg(address, reg, newTempWord)
 }
 
 // AmbientTemp reads the current sensor value along with the flags denoting what boundaries the

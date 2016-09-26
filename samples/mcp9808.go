@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -34,7 +33,7 @@ func main() {
 	therm.SetAlertStatus(true)
 	therm.SetAlertControl(true)
 	therm.SetAlertSelect(false)
-	therm.SetAlertPolarity(false)
+	therm.SetAlertPolarity(true)
 
 	config, _ := therm.Config()
 	fmt.Printf("New Config: %b\n", config)
@@ -43,11 +42,18 @@ func main() {
 		panic(err)
 	}
 
+	if err := therm.SetWindowTempLower(TempFToC(-40)); err != nil {
+		panic(err)
+	}
+	lowerTemp, err := therm.WindowTempLower()
+	if err != nil {
+		fmt.Printf("Error reading lower temp limit: %s\n", err.Error())
+	}
+	fmt.Printf("Lower Temp Limit set to: %fC\n", lowerTemp)
+
 	if err := therm.SetWindowTempUpper(TempFToC(80)); err != nil {
 		panic(err)
 	}
-	fmt.Printf("Set upper temp to %fC\n", TempFToC(80))
-
 	upperTemp, _ := therm.WindowTempUpper()
 	fmt.Printf("Upper Temp Limit set to: %fC\n", upperTemp)
 
@@ -55,10 +61,19 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer embd.CloseGPIO()
+	defer alert.Close()
 
 	alert.SetDirection(embd.In)
-	alert.PullUp()
+	alert.ActiveLow(false)
+
+	err = alert.Watch(embd.EdgeRising, func(alert embd.DigitalPin) {
+		fmt.Printf("Temperature is outside the specified window!\n")
+		therm.SetInterruptClear(true)
+		therm.Config()
+	})
+	if err != nil {
+		panic(err)
+	}
 
 	cancel := make(chan bool)
 	go func() {
@@ -77,16 +92,6 @@ func main() {
 			} else {
 				fmt.Printf("Current temp is: %fF (%fC), Window Alert: %v, Critical Alert: %v\n",
 					TempCToF(temp.CelsiusDeg), temp.CelsiusDeg, temp.AboveUpper || temp.BelowLower, temp.AboveCritical)
-			}
-			status, err := alert.Read()
-			if err != nil {
-				log.Printf("Error reading pin: %s\n", err.Error())
-				continue
-			}
-			fmt.Printf("Status: %d\n\n", status)
-			if status == embd.High {
-				fmt.Println("Alert temp has been reached!")
-				return
 			}
 		case <-cancel:
 			return
