@@ -4,7 +4,6 @@
 package mcp9808
 
 import (
-	"math"
 	"sync"
 
 	"github.com/kidoman/embd"
@@ -319,44 +318,11 @@ func (d *MCP9808) readTempC(reg byte) (float64, error) {
 }
 
 func convertWordToTempC(temp uint16) float64 {
-	wholeNum := float64(temp&0xFF0) / 16.0
-	fraction := float64(temp&0xF) * .0625
-
-	tempRead := wholeNum + fraction
-
-	// read sign bit
-	if temp>>12 == 1 {
-		tempRead *= -1
-	}
-	return tempRead
+	return float64(int16(temp<<3)>>3) / 16
 }
 
 func (d *MCP9808) setTemp(reg byte, newTemp float64) error {
-	d.cmu.Lock()
-	defer d.cmu.Unlock()
-
-	var signBit uint16
-	if newTemp < 0 {
-		newTemp *= -1
-		signBit = 0x1000
-	}
-
-	wholeNum, fraction := math.Modf(newTemp)
-	var roundedFrac uint16
-	switch {
-	case fraction < .125:
-		roundedFrac = 0
-	case fraction < .375:
-		roundedFrac = 1
-	case fraction < .625:
-		roundedFrac = 2
-	case fraction < .875:
-		roundedFrac = 3
-	default:
-		roundedFrac = 4
-	}
-	newTempWord := signBit + uint16(wholeNum)*16 + roundedFrac*4
-	return d.Bus.WriteWordToReg(address, reg, newTempWord)
+	return d.Bus.WriteWordToReg(address, reg, uint16((newTemp)*16)&0x1fff)
 }
 
 // AmbientTemp reads the current sensor value along with the flags denoting what boundaries the
@@ -368,16 +334,16 @@ func (d *MCP9808) AmbientTemp() (*Temperature, error) {
 	}
 
 	tempResult := &Temperature{
-		AboveCritical: !(temp&(1<<15) == 0),
-		AboveUpper:    !(temp&(1<<14) == 0),
-		BelowLower:    !(temp&(1<<13) == 0)}
+		AboveCritical: temp&0x8000 == 0x8000,
+		AboveUpper:    temp&0x4000 == 0x4000,
+		BelowLower:    temp&0x2000 == 0x2000}
 	tempResult.CelsiusDeg = convertWordToTempC(temp)
 
 	return tempResult, nil
 }
 
-// CriticalTempUpper reads the current temperature set in the critical temperature register.
-func (d *MCP9808) CriticalTempUpper() (float64, error) {
+// CriticalTemp reads the current temperature set in the critical temperature register.
+func (d *MCP9808) CriticalTemp() (float64, error) {
 	return d.readTempC(regCriticalTemp)
 }
 
