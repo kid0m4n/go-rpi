@@ -3,11 +3,7 @@
 // http://ww1.microchip.com/downloads/en/DeviceDoc/25095A.pdf
 package mcp9808
 
-import (
-	"sync"
-
-	"github.com/kidoman/embd"
-)
+import "github.com/kidoman/embd"
 
 const (
 	// default I2C address for device
@@ -39,7 +35,6 @@ const (
 // MCP9808 represents a MCP9808 temperature sensor.
 type MCP9808 struct {
 	Bus    embd.I2CBus
-	cmu    sync.Mutex
 	config uint16
 }
 
@@ -50,17 +45,11 @@ func New(bus embd.I2CBus) *MCP9808 {
 
 // ManufacturerID reads the device manufacturer ID
 func (d *MCP9808) ManufacturerID() (uint16, error) {
-	d.cmu.Lock()
-	defer d.cmu.Unlock()
-
 	return d.Bus.ReadWordFromReg(address, regManufID)
 }
 
 // DeviceID reads the device ID and revision
 func (d *MCP9808) DeviceID() (uint8, uint8, error) {
-	d.cmu.Lock()
-	defer d.cmu.Unlock()
-
 	devIDRev, err := d.Bus.ReadWordFromReg(address, regDeviceID)
 	if err != nil {
 		return 0, 0, err
@@ -69,15 +58,8 @@ func (d *MCP9808) DeviceID() (uint8, uint8, error) {
 	return uint8(devIDRev >> 8), uint8(devIDRev & 0xFF), nil
 }
 
-// Config returns the current word value of the sensor config struct and whether
-// that value reflects what is set on the sensor
+// Config gets the config word from the device.
 func (d *MCP9808) Config() (uint16, error) {
-	return d.readConfig()
-}
-
-// ReadConfig reads the config word from the device and writes it to the config attribute
-// this overwrites any changes that may have been made to the config attribute
-func (d *MCP9808) readConfig() (uint16, error) {
 	config, err := d.Bus.ReadWordFromReg(address, regConfig)
 	if err != nil {
 		return 0, err
@@ -86,26 +68,24 @@ func (d *MCP9808) readConfig() (uint16, error) {
 	return d.config, nil
 }
 
-// WriteConfig writes the sensor's config word to the device and returns the resulting config
-func (d *MCP9808) writeConfig() error {
+// setConfig writes the sensor's config word to the device and returns the resulting config
+func (d *MCP9808) setConfig() error {
 	return d.Bus.WriteWordToReg(address, regConfig, d.config)
 }
 
 // flipConfig bit sets (1, set = true) or clears (0, set = false) a bit within the config word
 func (d *MCP9808) flipConfigBit(val uint16, set bool) error {
-	d.cmu.Lock()
-	defer d.cmu.Unlock()
 	if set {
 		d.config |= val
 	} else {
 		d.config &= ^val
 	}
-	return d.writeConfig()
+	return d.setConfig()
 }
 
 func (d *MCP9808) readConfigValue(val uint16) (bool, error) {
-	_, err := d.readConfig()
-	return !(d.config&(1<<val) == 0), err
+	config, err := d.Config()
+	return !(config&(1<<val) == 0), err
 }
 
 // Hysteresis applies for decreasing temperature only (hot to cold) or as temperature
@@ -131,7 +111,7 @@ const (
 // The hysteresis applies for decreasing temperature only (hot to cold) or as temperature
 // drifts below the specified limit.
 func (d *MCP9808) TempHysteresis() (Hysteresis, error) {
-	_, err := d.readConfig()
+	_, err := d.Config()
 	return Hysteresis(d.config >> 9), err
 }
 
@@ -145,11 +125,8 @@ func (d *MCP9808) TempHysteresis() (Hysteresis, error) {
 // This bit can not be altered when either of the Lock bits are set (bit 6 and bit 7).
 // Thi s bit can be programmed in Shutdown mode.
 func (d *MCP9808) SetTempHysteresis(val Hysteresis) error {
-	d.cmu.Lock()
-	defer d.cmu.Unlock()
-
 	d.config = d.config - d.config&^(d.config>>9) + uint16(val)<<9
-	return d.writeConfig()
+	return d.setConfig()
 }
 
 // ShutdownMode bit
@@ -409,23 +386,17 @@ type TempResolution uint8
 const (
 	HalfC TempResolution = iota
 	QuarterC
-	Eighth
-	Sixteenth
+	EighthC
+	SixteenthC
 )
 
 // TempResolution reads the temperature resolution from the sensor.
 func (d *MCP9808) TempResolution() (TempResolution, error) {
-	d.cmu.Lock()
-	defer d.cmu.Unlock()
-
 	res, err := d.Bus.ReadByteFromReg(address, regResolution)
 	return TempResolution(res), err
 }
 
 // SetTempResolution writes a new temperature resolution to the sensor
 func (d *MCP9808) SetTempResolution(res TempResolution) error {
-	d.cmu.Lock()
-	defer d.cmu.Unlock()
-
 	return d.Bus.WriteByteToReg(address, regResolution, byte(res))
 }

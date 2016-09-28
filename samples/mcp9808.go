@@ -42,7 +42,7 @@ func main() {
 		panic(err)
 	}
 
-	if err := therm.SetWindowTempLower(TempFToC(-40)); err != nil {
+	if err := therm.SetWindowTempLower(TempFToC(32)); err != nil {
 		panic(err)
 	}
 	lowerTemp, err := therm.WindowTempLower()
@@ -51,7 +51,7 @@ func main() {
 	}
 	fmt.Printf("Lower Temp Limit set to: %fC\n", lowerTemp)
 
-	if err := therm.SetWindowTempUpper(TempFToC(80)); err != nil {
+	if err := therm.SetWindowTempUpper(TempFToC(75)); err != nil {
 		panic(err)
 	}
 	upperTemp, _ := therm.WindowTempUpper()
