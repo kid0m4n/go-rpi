@@ -142,25 +142,6 @@ func readInt16(lsb byte, msb byte, bus embd.I2CBus, addr byte) (int16, error) {
 	return (int16(msbv) << 8) | int16(lsbv), nil
 }
 
-func readInt24(xlsb byte, lsb byte, msb byte, bus embd.I2CBus, addr byte) (int32, error) {
-	msbv, err := bus.ReadByteFromReg(addr, msb)
-	if err != nil {
-		return 0, err
-	}
-
-	lsbv, err := bus.ReadByteFromReg(addr, lsb)
-	if err != nil {
-		return 0, err
-	}
-
-	xlsbv, err := bus.ReadByteFromReg(addr, xlsb)
-	if err != nil {
-		return 0, err
-	}
-
-	return int32((uint32(msbv)<<12)|(uint32(lsbv)<<4)) | ((int32(xlsbv) >> 4) & 0x0F), nil
-}
-
 // New creates and calibrates a connection to a BME280 sensor on the supplied i2c bus
 // at the nominated i2c address.
 func New(bus embd.I2CBus, addr byte) (*BME280, error) {
@@ -286,8 +267,6 @@ func New(bus embd.I2CBus, addr byte) (*BME280, error) {
 		return s, err
 	}
 	s.Cal.H6 = float64(msb)
-
-	fmt.Printf("H1: %f, H2: %f, H3: %f, H4: %f, H5: %f, H6: %f\n", s.Cal.H1, s.Cal.H2, s.Cal.H3, s.Cal.H4, s.Cal.H5, s.Cal.H6)
 
 	// Put the sensor in sleep mode and configure.
 	err = bus.WriteByteToReg(addr, CTRL_MEAS_REG, 0x00)
