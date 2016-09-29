@@ -15,7 +15,7 @@ func main() {
 	bus := embd.NewI2CBus(1)
 	defer embd.CloseI2C()
 
-	therm := mcp9808.New(bus)
+	therm, _ := mcp9808.New(bus)
 	// set sensor to low power mode when we're done
 	defer therm.SetShutdownMode(true)
 
@@ -38,11 +38,16 @@ func main() {
 	config, _ := therm.Config()
 	fmt.Printf("New Config: %b\n", config)
 
-	if err := therm.SetCriticalTemp(TempFToC(90)); err != nil {
+	if err := therm.SetCriticalTemp(TempFToC(95)); err != nil {
 		panic(err)
 	}
+	critTemp, err := therm.CriticalTemp()
+	if err != nil {
+		fmt.Printf("Error reading critical temp limit: %s\n", err.Error())
+	}
+	fmt.Printf("Critical Temp set to: %fC\n", critTemp)
 
-	if err := therm.SetWindowTempLower(TempFToC(32)); err != nil {
+	if err := therm.SetWindowTempLower(TempFToC(50)); err != nil {
 		panic(err)
 	}
 	lowerTemp, err := therm.WindowTempLower()
@@ -51,7 +56,7 @@ func main() {
 	}
 	fmt.Printf("Lower Temp Limit set to: %fC\n", lowerTemp)
 
-	if err := therm.SetWindowTempUpper(TempFToC(75)); err != nil {
+	if err := therm.SetWindowTempUpper(TempFToC(80)); err != nil {
 		panic(err)
 	}
 	upperTemp, _ := therm.WindowTempUpper()

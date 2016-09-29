@@ -39,8 +39,12 @@ type MCP9808 struct {
 }
 
 // New returns a handle to a MCP9808 sensor.
-func New(bus embd.I2CBus) *MCP9808 {
-	return &MCP9808{Bus: bus}
+func New(bus embd.I2CBus) (*MCP9808, error) {
+	d := &MCP9808{Bus: bus}
+
+	// initialize the configuration
+	_, err := d.Config()
+	return d, err
 }
 
 // ManufacturerID reads the device manufacturer ID
