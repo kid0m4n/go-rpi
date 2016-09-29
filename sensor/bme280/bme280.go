@@ -3,7 +3,6 @@
 package bme280
 
 import (
-	"fmt"
 	"github.com/kidoman/embd"
 )
 
