@@ -34,30 +34,30 @@ const (
 	CAL_P9_LSB_REG = 0x9E
 	CAL_P9_MSB_REG = 0x9F
 
-	CAL_H1_REG = 0xA1
+	CAL_H1_REG     = 0xA1
 	CAL_H2_LSB_REG = 0xE1
 	CAL_H2_MSB_REG = 0xE2
-	CAL_H3_REG = 0xE3
+	CAL_H3_REG     = 0xE3
 	CAL_H4_MSB_REG = 0xE4
 	CAL_H4_LSB_REG = 0xE5
 	CAL_H5_MSB_REG = 0xE6
-	CAL_H6_REG = 0xE7
+	CAL_H6_REG     = 0xE7
 
-	TMP_MSB_REG = 0xFA
-	TMP_LSB_REG = 0xFB
+	TMP_MSB_REG  = 0xFA
+	TMP_LSB_REG  = 0xFB
 	TMP_XLSB_REG = 0xFC
 
-	PRESSURE_MSB_REG = 0xF7
-	PRESSURE_LSB_REG = 0xF8
+	PRESSURE_MSB_REG  = 0xF7
+	PRESSURE_LSB_REG  = 0xF8
 	PRESSURE_XLSB_REG = 0xF9
 
 	HUMIDITY_MSB_REG = 0xFD
 	HUMIDITY_LSB_REG = 0xFE
 
-	CTRL_MEAS_REG = 0xF4
-	CONFIG_REG = 0xF5
+	CTRL_MEAS_REG     = 0xF4
+	CONFIG_REG        = 0xF5
 	CTRL_HUMIDITY_REG = 0xF2
-	RESET_REG = 0xE0
+	RESET_REG         = 0xE0
 
 	//RunMode can be:
 	//  0, Sleep mode
@@ -101,11 +101,11 @@ const (
 )
 
 type Calibration struct {
-	T1 uint16
+	T1     uint16
 	T2, T3 int16
 
 	P1, P2, P3, P4, P5, P6, P7, P8, P9 int64
-	H1, H2, H3, H4, H5, H6 float64
+	H1, H2, H3, H4, H5, H6             float64
 }
 
 type BME280 struct {
@@ -157,7 +157,7 @@ func readInt24(xlsb byte, lsb byte, msb byte, bus embd.I2CBus, addr byte) (int32
 		return 0, err
 	}
 
-	return int32((uint32(msbv) << 12) | (uint32(lsbv) << 4)) | ((int32(xlsbv) >> 4) & 0x0F), nil
+	return int32((uint32(msbv)<<12)|(uint32(lsbv)<<4)) | ((int32(xlsbv) >> 4) & 0x0F), nil
 }
 
 // New creates and calibrates a connection to a BME280 sensor on the supplied i2c bus
@@ -268,7 +268,7 @@ func New(bus embd.I2CBus, addr byte) (*BME280, error) {
 	if err != nil {
 		return s, err
 	}
-	s.Cal.H4 = float64((int16(msb) << 4) | int16(lsb) & 0x0F)
+	s.Cal.H4 = float64((int16(msb) << 4) | int16(lsb)&0x0F)
 
 	msb, err = bus.ReadByteFromReg(addr, CAL_H5_MSB_REG)
 	if err != nil {
@@ -278,7 +278,7 @@ func New(bus embd.I2CBus, addr byte) (*BME280, error) {
 	if err != nil {
 		return s, err
 	}
-	s.Cal.H5 = float64((int16(msb) << 4) | (int16(lsb) >> 4) & 0x0F)
+	s.Cal.H5 = float64((int16(msb) << 4) | (int16(lsb)>>4)&0x0F)
 
 	msb, err = bus.ReadByteFromReg(addr, CAL_H6_REG)
 	if err != nil {
@@ -289,7 +289,7 @@ func New(bus embd.I2CBus, addr byte) (*BME280, error) {
 	fmt.Printf("H1: %f, H2: %f, H3: %f, H4: %f, H5: %f, H6: %f\n", s.Cal.H1, s.Cal.H2, s.Cal.H3, s.Cal.H4, s.Cal.H5, s.Cal.H6)
 
 	// Put the sensor in sleep mode and configure.
-	err = bus.WriteByteToReg(addr, CTRL_MEAS_REG, 0x00);
+	err = bus.WriteByteToReg(addr, CTRL_MEAS_REG, 0x00)
 	if err != nil {
 		return s, err
 	}
@@ -325,8 +325,8 @@ func (s *BME280) fineT() (int32, error) {
 	if err != nil {
 		return 0, err
 	}
-	var1  := ((((adcT>>3) - (int32(s.Cal.T1) <<1))) * (int32(s.Cal.T2))) >> 11;
-  	var2  := (((((adcT>>4) - (int32(s.Cal.T1))) * ((adcT>>4) - (int32(s.Cal.T1)))) >> 12) * (int32(s.Cal.T3))) >> 14;
+	var1 := (((adcT >> 3) - (int32(s.Cal.T1) << 1)) * (int32(s.Cal.T2))) >> 11
+	var2 := (((((adcT >> 4) - (int32(s.Cal.T1))) * ((adcT >> 4) - (int32(s.Cal.T1)))) >> 12) * (int32(s.Cal.T3))) >> 14
 
 	return (var1 + var2), nil
 }
@@ -343,14 +343,14 @@ func (s *BME280) Humidity() (float64, error) {
 	}
 
 	varH := float64(fineT) - 76800.0
-	varH = (float64(adcH) - (s.Cal.H4 * 64.0 + s.Cal.H5 / 16384.0 * varH)) *
-           (s.Cal.H2 / 65536.0 * (1.0 + s.Cal.H6 / 67108864.0 * varH * (1.0 + s.Cal.H3 / 67108864 * varH)))
-    varH = varH * (1.0 - s.Cal.H1 * varH / 524288.0)
-    if varH > 100.0 {
-    	varH = 100.0
-    } else if varH < 0.0 {
-    	varH = 0.0
-    }
+	varH = (float64(adcH) - (s.Cal.H4*64.0 + s.Cal.H5/16384.0*varH)) *
+		(s.Cal.H2 / 65536.0 * (1.0 + s.Cal.H6/67108864.0*varH*(1.0+s.Cal.H3/67108864*varH)))
+	varH = varH * (1.0 - s.Cal.H1*varH/524288.0)
+	if varH > 100.0 {
+		varH = 100.0
+	} else if varH < 0.0 {
+		varH = 0.0
+	}
 
 	return varH, nil
 }
@@ -369,18 +369,18 @@ func (s *BME280) Pressure() (float64, error) {
 
 	var1 := int64(fineT) - 128000
 	var2 := var1 * var1 * s.Cal.P6
-	var2 = var2 + (var1 * s.Cal.P5<<17)
-	var2 = var2 + (s.Cal.P4<<35)
-	var1 = (var1 * var1 * s.Cal.P3>>8) + (var1 * s.Cal.P2<<12)
-	var1 = (((int64(1)<<47)+var1))*s.Cal.P1>>33
+	var2 = var2 + (var1 * s.Cal.P5 << 17)
+	var2 = var2 + (s.Cal.P4 << 35)
+	var1 = (var1 * var1 * s.Cal.P3 >> 8) + (var1 * s.Cal.P2 << 12)
+	var1 = ((int64(1) << 47) + var1) * s.Cal.P1 >> 33
 	if var1 == 0 {
 		return 0, nil // avoid exception caused by division by zero
 	}
 	p_acc := 1048576 - int64(adcP)
-	p_acc = (((p_acc<<31) - var2)*3125)/var1
-	var1 = (s.Cal.P9 * (p_acc>>13) * (p_acc>>13)) >> 25
+	p_acc = (((p_acc << 31) - var2) * 3125) / var1
+	var1 = (s.Cal.P9 * (p_acc >> 13) * (p_acc >> 13)) >> 25
 	var2 = (s.Cal.P8 * p_acc) >> 19
-	p_acc = ((p_acc + var1 + var2) >> 8) + (s.Cal.P7<<4)
+	p_acc = ((p_acc + var1 + var2) >> 8) + (s.Cal.P7 << 4)
 
 	p_acc = p_acc >> 8 // /256
 	return float64(p_acc), nil
