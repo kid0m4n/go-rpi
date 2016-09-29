@@ -43,16 +43,17 @@ const (
 	CAL_H5_MSB_REG = 0xE6
 	CAL_H6_REG     = 0xE7
 
-	TMP_MSB_REG  = 0xFA
-	TMP_LSB_REG  = 0xFB
-	TMP_XLSB_REG = 0xFC
+	MEASUREMENT_START_REG = 0xF7
+	PRESSURE_MSB_IDX      = 0
+	PRESSURE_LSB_IDX      = 1
+	PRESSURE_XLSB_IDX     = 2
 
-	PRESSURE_MSB_REG  = 0xF7
-	PRESSURE_LSB_REG  = 0xF8
-	PRESSURE_XLSB_REG = 0xF9
+	TMP_MSB_IDX  = 3
+	TMP_LSB_IDX  = 4
+	TMP_XLSB_IDX = 5
 
-	HUMIDITY_MSB_REG = 0xFD
-	HUMIDITY_LSB_REG = 0xFE
+	HUMIDITY_MSB_IDX = 6
+	HUMIDITY_LSB_IDX = 7
 
 	CTRL_MEAS_REG     = 0xF4
 	CONFIG_REG        = 0xF5
@@ -320,27 +321,27 @@ func New(bus embd.I2CBus, addr byte) (*BME280, error) {
 	return s, err
 }
 
-func (s *BME280) fineT() (int32, error) {
-	adcT, err := readInt24(TMP_XLSB_REG, TMP_LSB_REG, TMP_MSB_REG, s.Bus, s.Addr)
-	if err != nil {
-		return 0, err
-	}
+func (s *BME280) fineT(d []byte) int32 {
+	adcT := int32((uint32(d[TMP_MSB_IDX])<<12)|(uint32(d[TMP_LSB_IDX])<<4)) | ((int32(d[TMP_XLSB_IDX]) >> 4) & 0x0F)
+
 	var1 := (((adcT >> 3) - (int32(s.Cal.T1) << 1)) * (int32(s.Cal.T2))) >> 11
 	var2 := (((((adcT >> 4) - (int32(s.Cal.T1))) * ((adcT >> 4) - (int32(s.Cal.T1)))) >> 12) * (int32(s.Cal.T3))) >> 14
 
-	return (var1 + var2), nil
+	return (var1 + var2)
 }
 
-// Humdity returns the relative humidity. Output value of "46.332" represents 46.332 %rH.
-func (s *BME280) Humidity() (float64, error) {
-	fineT, err := s.fineT()
-	if err != nil {
-		return 0, err
-	}
-	adcH, err := readUInt16(HUMIDITY_LSB_REG, HUMIDITY_MSB_REG, s.Bus, s.Addr)
-	if err != nil {
-		return 0, err
-	}
+// Reads all measurements from the sensor. Call Humidity, Pressure or Temperature to retrieve calibrated readings.
+func (s *BME280) Measurements() ([]byte, error) {
+	buf := make([]byte, 8)
+	err := s.Bus.ReadFromReg(s.Addr, MEASUREMENT_START_REG, buf)
+
+	return buf, err
+}
+
+// Humdity returns the relative humidity from the supplied measurements. Output value of "46.332" represents 46.332 %rH.
+func (s *BME280) Humidity(d []byte) float64 {
+	fineT := s.fineT(d)
+	adcH := (uint16(d[HUMIDITY_MSB_IDX]) << 8) | uint16(d[HUMIDITY_LSB_IDX])
 
 	varH := float64(fineT) - 76800.0
 	varH = (float64(adcH) - (s.Cal.H4*64.0 + s.Cal.H5/16384.0*varH)) *
@@ -352,20 +353,16 @@ func (s *BME280) Humidity() (float64, error) {
 		varH = 0.0
 	}
 
-	return varH, nil
+	return varH
 }
 
-// Returns the pressure in Pascals. A value of "96386.2" equals 963.862 hPa.
-func (s *BME280) Pressure() (float64, error) {
-	fineT, err := s.fineT()
-	if err != nil {
-		return 0, err
-	}
+// Returns the pressure in Pascals from the supplied measurements. A value of "96386.2" equals 963.862 hPa.
+func (s *BME280) Pressure(d []byte) float64 {
+	fineT := s.fineT(d)
 
-	adcP, err := readInt24(PRESSURE_XLSB_REG, PRESSURE_LSB_REG, PRESSURE_MSB_REG, s.Bus, s.Addr)
-	if err != nil {
-		return 0, err
-	}
+	adcP := int32((uint32(d[PRESSURE_MSB_IDX])<<12)|
+		(uint32(d[PRESSURE_LSB_IDX])<<4)) |
+		((int32(d[PRESSURE_XLSB_IDX]) >> 4) & 0x0F)
 
 	var1 := int64(fineT) - 128000
 	var2 := var1 * var1 * s.Cal.P6
@@ -374,7 +371,7 @@ func (s *BME280) Pressure() (float64, error) {
 	var1 = (var1 * var1 * s.Cal.P3 >> 8) + (var1 * s.Cal.P2 << 12)
 	var1 = ((int64(1) << 47) + var1) * s.Cal.P1 >> 33
 	if var1 == 0 {
-		return 0, nil // avoid exception caused by division by zero
+		return 0 // avoid exception caused by division by zero
 	}
 	p_acc := 1048576 - int64(adcP)
 	p_acc = (((p_acc << 31) - var2) * 3125) / var1
@@ -383,11 +380,11 @@ func (s *BME280) Pressure() (float64, error) {
 	p_acc = ((p_acc + var1 + var2) >> 8) + (s.Cal.P7 << 4)
 
 	p_acc = p_acc >> 8 // /256
-	return float64(p_acc), nil
+	return float64(p_acc)
 }
 
-// Temperature returns the temperature in Degrees Celcius. Output value of "30.33" equals 30.33°C.
-func (s *BME280) Temperature() (float64, error) {
-	fineT, err := s.fineT()
-	return (float64(fineT) / 5120.0), err
+// Temperature returns the temperature in Degrees Celcius from the supplied measurements. Output value of "30.33" equals 30.33°C.
+func (s *BME280) Temperature(d []byte) float64 {
+	fineT := s.fineT(d)
+	return (float64(fineT) / 5120.0)
 }
