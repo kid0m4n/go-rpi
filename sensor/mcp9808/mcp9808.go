@@ -164,7 +164,7 @@ func (d *MCP9808) CriticalTempLock() (bool, error) {
 // 1 (true) = Locked. TCRIT register can not be written
 // When enabled, this bit remains set to ‘1’ or locked until cleared by an internal Reset
 // This bit can be programmed in Shutdown mode.
-func (d *MCP9808) setCriticalTempLock(locked bool) error {
+func (d *MCP9808) SetCriticalTempLock(locked bool) error {
 	return d.flipConfigBit(configCriticalTempLock, locked)
 }
 
@@ -176,12 +176,12 @@ func (d *MCP9808) WindowTempLock() (bool, error) {
 	return d.readConfigValue(configWindowTempLock)
 }
 
-// setWindowTempLock - TUPPER and TLOWER Window Lock bit
+// SetWindowTempLock - TUPPER and TLOWER Window Lock bit
 // 0 (false) = Unlocked; TUPPER and TLOWER registers can be written (power-up default)
 // 1 (true) = Locked; TUPPER and TLOWER registers can not be written
 // When enabled, this bit remains set to ‘1’ or locked until cleared by a Power-on Reset
 // This bit can be programmed in Shutdown mode.
-func (d *MCP9808) setWindowTempLock(locked bool) error {
+func (d *MCP9808) SetWindowTempLock(locked bool) error {
 	return d.flipConfigBit(configWindowTempLock, locked)
 }
 
@@ -329,17 +329,9 @@ func (d *MCP9808) CriticalTemp() (float64, error) {
 }
 
 // SetCriticalTemp when the temperature goes above the set value the alert will be
-// triggered if enabled.
+// triggered if enabled.  This has no effect if CriticalTempLock is set.
 func (d *MCP9808) SetCriticalTemp(newTemp float64) error {
-	if err := d.setCriticalTempLock(false); err != nil {
-		return err
-	}
-
-	if err := d.setTemp(regCriticalTemp, newTemp); err != nil {
-		return err
-	}
-
-	return d.setCriticalTempLock(true)
+	return d.setTemp(regCriticalTemp, newTemp)
 }
 
 // WindowTempUpper reads the current temperature set in the upper window temperature register.
@@ -348,17 +340,9 @@ func (d *MCP9808) WindowTempUpper() (float64, error) {
 }
 
 // SetWindowTempUpper when the temperature goes above the set value the alert will be
-// triggered if enabled.
+// triggered if enabled.  This has no effect if WindowTempLock is set.
 func (d *MCP9808) SetWindowTempUpper(newTemp float64) error {
-	if err := d.setWindowTempLock(false); err != nil {
-		return err
-	}
-
-	if err := d.setTemp(regUpperTemp, newTemp); err != nil {
-		return err
-	}
-
-	return d.setWindowTempLock(true)
+	return d.setTemp(regUpperTemp, newTemp)
 }
 
 // WindowTempLower reads the current temperature set in the lower window temperature register.
@@ -367,17 +351,9 @@ func (d *MCP9808) WindowTempLower() (float64, error) {
 }
 
 // SetWindowTempLower when the temperature goes below the set value the alert will be
-// triggered if enabled.
+// triggered if enabled.  This has no effect if WindowTempLock is set.
 func (d *MCP9808) SetWindowTempLower(newTemp float64) error {
-	if err := d.setWindowTempLock(false); err != nil {
-		return err
-	}
-
-	if err := d.setTemp(regLowerTemp, newTemp); err != nil {
-		return err
-	}
-
-	return d.setWindowTempLock(true)
+	return d.setTemp(regLowerTemp, newTemp)
 }
 
 // TempResolution reads the current temperature accuracy from the sensor (affects temperature read speed)
