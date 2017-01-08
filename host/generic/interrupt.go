@@ -58,6 +58,9 @@ func initEpollListener() *epollListener {
 
 		for {
 			n, err := syscall.EpollWait(listener.fd, epollEvents[:], -1)
+			if err == syscall.EINTR {
+				continue
+			}
 			if err != nil {
 				panic(fmt.Sprintf("EpollWait error: %v", err))
 			}
