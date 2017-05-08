@@ -646,3 +646,14 @@ func (conn *I2CConnection) Close() error {
 	glog.V(2).Info("hd44780: closing I2C bus")
 	return conn.I2C.Close()
 }
+
+// Allows us to fill the first 8 CGRAM locations
+// with custom characters, we can then print with writeChar(0-7)
+func (hd *HD44780) CreateChar(location byte, charmap []byte) error {
+	location &= 0x7;
+	err := hd.WriteInstruction(lcdSetCGRamAddr | (location << 3))
+	for i := 0; i < 8; i++ {
+		hd.WriteChar(charmap[i]);
+	}
+	return err
+}
