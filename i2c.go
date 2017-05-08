@@ -66,6 +66,7 @@ func InitI2C() error {
 
 // CloseI2C releases resources associated with the I2C driver.
 func CloseI2C() error {
+	i2cDriverInitialized = false
 	return i2cDriverInstance.Close()
 }
 
