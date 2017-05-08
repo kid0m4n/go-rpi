@@ -5,6 +5,8 @@
 	GPIO (digital (rw))
 	I²C
 	LED
+	W1 - make sure that w1-gpio kernel module is loaded. If you wish to use it with sensors directly (e.g. DS18B20 etc)
+		 make sure to disable respective kernel modules (e.g. w1-therm) in /etc/modprobe.d/blacklist.conf.
 */
 package rpi
 
@@ -96,6 +98,9 @@ func init() {
 			},
 			SPIDriver: func() embd.SPIDriver {
 				return embd.NewSPIDriver(spiDeviceMinor, generic.NewSPIBus, nil)
+			},
+			W1Driver: func() embd.W1Driver {
+				return embd.NewW1Driver(NewW1Bus)
 			},
 		}
 	})
