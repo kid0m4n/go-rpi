@@ -14,7 +14,6 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-
 	"github.com/golang/glog"
 	"github.com/kidoman/embd"
 	"github.com/kidoman/embd/host/generic"
@@ -99,12 +98,12 @@ var spiDeviceMinor int = 1
 
 func ensureFeatureEnabled(id string) error {
 	glog.V(3).Infof("bbb: enabling feature %v", id)
-	pattern := "/sys/devices/bone_capemgr.*/slots"
-	file, err := embd.FindFirstMatchingFile(pattern)
+	
+	slotsFile, err := slotsFilename()
 	if err != nil {
 		return err
 	}
-	bytes, err := ioutil.ReadFile(file)
+	bytes, err := ioutil.ReadFile(slotsFile)
 	if err != nil {
 		return err
 	}
@@ -113,7 +112,7 @@ func ensureFeatureEnabled(id string) error {
 		glog.V(3).Infof("bbb: feature %v already enabled", id)
 		return nil
 	}
-	slots, err := os.OpenFile(file, os.O_WRONLY, os.ModeExclusive)
+	slots, err := os.OpenFile(slotsFile, os.O_WRONLY, os.ModeExclusive)
 	if err != nil {
 		return err
 	}
@@ -128,12 +127,12 @@ func ensureFeatureEnabled(id string) error {
 // potentially cause a kernel panic and unsettle things. So the
 // recommended thing to do is to simply reboot.
 func ensureFeatureDisabled(id string) error {
-	pattern := "/sys/devices/bone_capemgr.*/slots"
-	file, err := embd.FindFirstMatchingFile(pattern)
+
+	slotsFile, err := slotsFilename()
 	if err != nil {
 		return err
 	}
-	slots, err := os.OpenFile(file, os.O_RDWR, os.ModeExclusive)
+	slots, err := os.OpenFile(slotsFile, os.O_RDWR, os.ModeExclusive)
 	if err != nil {
 		return err
 	}
@@ -183,4 +182,21 @@ func init() {
 			},
 		}
 	})
+}
+// slotsFilename returns the full path and filename of the Capemgr slots file
+func slotsFilename() (filename string, err error) {
+	major, _, _, err := embd.KernelVersion()
+	if err != nil {
+		return "", err
+	}
+	if major > 3 {
+		filename = "/sys/devices/platform/bone_capemgr/slots"
+	} else {
+		pattern := "/sys/devices/bone_capemgr.*/slots"
+		filename, err = embd.FindFirstMatchingFile(pattern)
+		if err != nil {
+			return "", err
+		}
+	}
+	return filename, err
 }
