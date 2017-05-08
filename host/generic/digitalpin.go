@@ -48,6 +48,8 @@ func (p *digitalPin) init() error {
 	if err = p.export(); err != nil {
 		return err
 	}
+	// give rpi some time to link digital pin property
+	time.Sleep(100 * time.Millisecond)
 	if p.dir, err = p.directionFile(); err != nil {
 		return err
 	}
