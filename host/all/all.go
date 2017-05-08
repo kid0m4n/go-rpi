@@ -3,5 +3,6 @@ package all
 
 import (
 	_ "github.com/kidoman/embd/host/bbb"
+	_ "github.com/kidoman/embd/host/edison"
 	_ "github.com/kidoman/embd/host/rpi"
 )

@@ -26,6 +26,9 @@ const (
 	// HostGalileo represents the Intel Galileo board.
 	HostGalileo = "Intel Galileo"
 
+	// HostEdison represents teh Intel Edison board.
+	HostEdison = "Intel Edison"
+
 	// HostCubieTruck represents the Cubie Truck.
 	HostCubieTruck = "CubieTruck"
 
@@ -126,6 +129,8 @@ func DetectHost() (host Host, rev int, err error) {
 		return HostBBB, rev, nil
 	case strings.Contains(hardware, "BCM2708") || strings.Contains(hardware, "BCM2709") || strings.Contains(hardware, "BCM2835"):
 		return HostRPi, rev, nil
+	case strings.Contains(model, "Genuine Intel(R) CPU   4000  @  500MHz"):
+		return HostEdison, rev, nil
 	case hardware == "Allwinner sun4i/sun5i Families":
 		if major < 4 || (major == 4 && minor < 4) {
 			return HostNull, 0, fmt.Errorf(
