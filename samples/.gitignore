@@ -8,6 +8,7 @@ gpio
 gpiodetect
 gpiodirect
 gpioshort
+isl29125
 l3gd20
 led
 ledshort
