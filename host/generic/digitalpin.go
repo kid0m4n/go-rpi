@@ -63,7 +63,21 @@ func (p *digitalPin) init() error {
 	return nil
 }
 
+func (p *digitalPin) isExported() bool {
+	if _, err := os.Stat(p.basePath()); err == nil {
+		return true
+	} else if os.IsNotExist(err) {
+		return false
+	} else {
+		// unknown
+		return false
+	}
+}
+
 func (p *digitalPin) export() error {
+	if p.isExported() {
+		return nil
+	}
 	exporter, err := os.OpenFile("/sys/class/gpio/export", os.O_WRONLY, os.ModeExclusive)
 	if err != nil {
 		return err
