@@ -5,8 +5,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/kidoman/embd"
-	_ "github.com/kidoman/embd/host/all"
+	"github.com/cfreeman/embd"
+	_ "github.com/cfreeman/embd/host/all"
 )
 
 func main() {

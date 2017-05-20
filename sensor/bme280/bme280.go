@@ -3,7 +3,7 @@
 package bme280
 
 import (
-	"github.com/kidoman/embd"
+	"github.com/cfreeman/embd"
 )
 
 const (

@@ -5,7 +5,7 @@
 package pcal9535a
 
 import (
-	"github.com/kidoman/embd"
+	"github.com/cfreeman/embd"
 )
 
 const (

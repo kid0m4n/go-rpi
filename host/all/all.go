@@ -2,7 +2,7 @@
 package all
 
 import (
-	_ "github.com/kidoman/embd/host/bbb"
-	_ "github.com/kidoman/embd/host/edison"
-	_ "github.com/kidoman/embd/host/rpi"
+	_ "github.com/cfreeman/embd/host/bbb"
+	_ "github.com/cfreeman/embd/host/edison"
+	_ "github.com/cfreeman/embd/host/rpi"
 )
