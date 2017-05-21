@@ -1,4 +1,4 @@
-# embd [![Build Status](https://travis-ci.org/kidoman/embd.svg?branch=master)](https://travis-ci.org/kidoman/embd) [![GoDoc](http://godoc.org/github.com/cfreeman/embd?status.png)](http://godoc.org/github.com/cfreeman/embd)
+# embd [![GoDoc](http://godoc.org/github.com/cfreeman/embd?status.png)](http://godoc.org/github.com/cfreeman/embd)
 
 **embd** is a hardware abstraction layer (HAL) for embedded systems.
 
@@ -17,11 +17,6 @@ to another and it enables kernel code to handle the devices as efficiently as po
 What embd then adds is first a Golang library interface on top of the various Linux
 devices and then another layer of user-level drivers for specific sensors and controllers
 that are connected to gpio pins or one of the buses.
-
-Development supported and sponsored by [**SoStronk**](https://www.sostronk.com) and
-[**ThoughtWorks**](http://www.thoughtworks.com/).
-
-Also, you might be interested in: [Why Golang?](https://github.com/cfreeman/embd/wiki/Why-Go)
 
 [Blog post introducing EMBD](http://kidoman.io/framework/embd.html)
 
@@ -76,16 +71,50 @@ Then on the rPi run the program with ```sudo```*:
 * This sample program is optimized for brevity and does not clean up after itself. Click here to
   see the [full version](https://github.com/cfreeman/embd/blob/master/samples/fullblinker.go)
 
-## Getting Help
+## Supported Platforms
 
-Join the [slack channel](https://gophers.slack.com/archives/embd)
-
-## Platforms Supported
-
-* [RaspberryPi](http://www.raspberrypi.org/) (including [A+](http://www.raspberrypi.org/products/model-a-plus/) and [B+](http://www.raspberrypi.org/products/model-b-plus/))
-* [RaspberryPi 2](http://www.raspberrypi.org/)
-* [NextThing C.H.I.P](https://www.nextthing.co/pages/chip)
 * [BeagleBone Black](http://beagleboard.org/Products/BeagleBone%20Black)
+* [Intel Edison](https://software.intel.com/en-us/iot/hardware/edison)
+* [NextThing C.H.I.P](https://www.nextthing.co/pages/chip)
+* [RaspberryPi 1 A+](http://www.raspberrypi.org/products/model-a-plus/)
+* [RaspberryPi 1 B+](https://www.raspberrypi.org/products/model-b-plus/)
+* [RaspberryPi 2](https://www.raspberrypi.org/products/raspberry-pi-2-model-b/)
+* [RaspberryPi 3](https://www.raspberrypi.org/products/raspberry-pi-3-model-b/)
+
+## Supported Protocols
+
+* **Digital GPIO** [Documentation](http://godoc.org/github.com/cfreeman/embd#DigitalPin)
+* **Analog GPIO** [Documentation](http://godoc.org/github.com/cfreeman/embd#AnalogPin)
+* **PWM** [Documentation](http://godoc.org/github.com/cfreeman/embd#PWMPin)
+* **I2C** [Documentation](http://godoc.org/github.com/cfreeman/embd#I2CBus)
+* **LED** [Documentation](http://godoc.org/github.com/cfreeman/embd#LED)
+* **SPI** [Documentation](http://godoc.org/github.com/cfreeman/embd#SPIBus)
+
+## Supported Sensors
+
+* **BH1750FVI** Luminosity sensor [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/bh1750fvi), [Datasheet](http://www.elechouse.com/elechouse/images/product/Digital%20light%20Sensor/bh1750fvi-e.pdf)
+* **BME280** Pressure, Temperature and Humidity Sensor [Documentation](https://godoc.org/github.com/cfreeman/embd/sensor/bme280), [Datasheet](https://cdn-shop.adafruit.com/datasheets/BST-BME280_DS001-10.pdf)
+* **BMP085** Barometric pressure sensor [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/bmp085), [Datasheet](https://www.sparkfun.com/datasheets/Components/General/BST-BMP085-DS000-05.pdf)
+* **BMP180** Barometric pressure sensor [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/bmp180), [Datasheet](http://www.adafruit.com/datasheets/BST-BMP180-DS000-09.pdf)
+* **L3GD20** Gyroscope [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/l3gd20), [Datasheet](http://www.adafruit.com/datasheets/L3GD20.pdf)
+* **LSM303** Accelerometer and magnetometer [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/lsm303), [Datasheet](https://www.sparkfun.com/datasheets/Sensors/Magneto/LSM303%20Datasheet.pdf)
+* **TMP006** Thermopile sensor [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/tmp006), [Datasheet](http://www.adafruit.com/datasheets/tmp006.pdf), [Userguide](http://www.adafruit.com/datasheets/tmp006ug.pdf)
+* **US020** Ultrasonic proximity sensor [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/us020), [Product Page](http://www.digibay.in/sensor/object-detection-and-proximity?product_id=239)
+
+## Interfaces
+
+* **Keypad(4x3)** [Product Page](http://www.adafruit.com/products/419#Learn)
+
+## Controllers
+
+* **PCA9685** 16-channel, 12-bit PWM Controller with I2C protocol [Documentation](http://godoc.org/github.com/cfreeman/embd/controller/pca9685), [Datasheet](http://www.adafruit.com/datasheets/PCA9685.pdf), [Product Page](http://www.adafruit.com/products/815)
+* **MCP4725** 12-bit DAC [Documentation](http://godoc.org/github.com/cfreeman/embd/controller/mcp4725), [Datasheet](http://www.adafruit.com/datasheets/mcp4725.pdf), [Product Page](http://www.adafruit.com/products/935)
+* **ServoBlaster** RPi PWM/PCM based PWM controller [Documentation](http://godoc.org/github.com/cfreeman/embd/controller/servoblaster), [Product Page](https://github.com/richardghirst/PiBits/tree/master/ServoBlaster)
+
+## Convertors
+
+* **MCP3008** 8-channel, 10-bit ADC with SPI protocol, [Datasheet](https://www.adafruit.com/datasheets/MCP3008.pdf)
+
 
 ## The command line tool
 
@@ -213,38 +242,7 @@ heading, err := mag.Heading()
 The above two examples depend on **I2C** and therefore will work without change on almost all
 platforms.
 
-## Protocols Supported
 
-* **Digital GPIO** [Documentation](http://godoc.org/github.com/cfreeman/embd#DigitalPin)
-* **Analog GPIO** [Documentation](http://godoc.org/github.com/cfreeman/embd#AnalogPin)
-* **PWM** [Documentation](http://godoc.org/github.com/cfreeman/embd#PWMPin)
-* **I2C** [Documentation](http://godoc.org/github.com/cfreeman/embd#I2CBus)
-* **LED** [Documentation](http://godoc.org/github.com/cfreeman/embd#LED)
-* **SPI** [Documentation](http://godoc.org/github.com/cfreeman/embd#SPIBus)
-
-## Sensors Supported
-
-* **TMP006** Thermopile sensor [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/tmp006), [Datasheet](http://www.adafruit.com/datasheets/tmp006.pdf), [Userguide](http://www.adafruit.com/datasheets/tmp006ug.pdf)
-* **BMP085** Barometric pressure sensor [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/bmp085), [Datasheet](https://www.sparkfun.com/datasheets/Components/General/BST-BMP085-DS000-05.pdf)
-* **BMP180** Barometric pressure sensor [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/bmp180), [Datasheet](http://www.adafruit.com/datasheets/BST-BMP180-DS000-09.pdf)
-* **LSM303** Accelerometer and magnetometer [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/lsm303), [Datasheet](https://www.sparkfun.com/datasheets/Sensors/Magneto/LSM303%20Datasheet.pdf)
-* **L3GD20** Gyroscope [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/l3gd20), [Datasheet](http://www.adafruit.com/datasheets/L3GD20.pdf)
-* **US020** Ultrasonic proximity sensor [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/us020), [Product Page](http://www.digibay.in/sensor/object-detection-and-proximity?product_id=239)
-* **BH1750FVI** Luminosity sensor [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/bh1750fvi), [Datasheet](http://www.elechouse.com/elechouse/images/product/Digital%20light%20Sensor/bh1750fvi-e.pdf)
-
-## Interfaces
-
-* **Keypad(4x3)** [Product Page](http://www.adafruit.com/products/419#Learn)
-
-## Controllers
-
-* **PCA9685** 16-channel, 12-bit PWM Controller with I2C protocol [Documentation](http://godoc.org/github.com/cfreeman/embd/controller/pca9685), [Datasheet](http://www.adafruit.com/datasheets/PCA9685.pdf), [Product Page](http://www.adafruit.com/products/815)
-* **MCP4725** 12-bit DAC [Documentation](http://godoc.org/github.com/cfreeman/embd/controller/mcp4725), [Datasheet](http://www.adafruit.com/datasheets/mcp4725.pdf), [Product Page](http://www.adafruit.com/products/935)
-* **ServoBlaster** RPi PWM/PCM based PWM controller [Documentation](http://godoc.org/github.com/cfreeman/embd/controller/servoblaster), [Product Page](https://github.com/richardghirst/PiBits/tree/master/ServoBlaster)
-
-## Convertors
-
-* **MCP3008** 8-channel, 10-bit ADC with SPI protocol, [Datasheet](https://www.adafruit.com/datasheets/MCP3008.pdf)
 
 ## Contributing
 
@@ -257,3 +255,13 @@ Thank you!
 ## About
 
 EMBD is affectionately designed/developed by Karan Misra ([kidoman](https://github.com/kidoman)), Kunal Powar ([kunalpowar](https://github.com/kunalpowar)) and [FRIENDS](https://github.com/cfreeman/embd/blob/master/AUTHORS). We also have a list of [CONTRIBUTORS](https://github.com/cfreeman/embd/blob/master/CONTRIBUTORS).
+
+## TODO
+* Continue to tidy up the readme and other documenting files.
+* Find more details/datasheet on the implemented watersensor.
+* Dig through logs and add license/copyright headers throughout.
+* Remove AUTHORS & CONTRIBUTORS -- That stuff is better maintained within git history (don't forget update_contributors script).
+* Make sure there are samples for all the supported hardware.
+* Organise samples into different folders.
+* Rummage through the old, largely abandoned parent repo and pull in as many of the requests as possible.
+
