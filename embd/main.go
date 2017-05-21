@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/codegangsta/cli"
 	_ "github.com/cfreeman/embd/host/all"
+	"github.com/codegangsta/cli"
 )
 
 var version = "0.1.0"

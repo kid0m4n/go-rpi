@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/golang/glog"
 	"github.com/cfreeman/embd"
 	"github.com/cfreeman/embd/util"
+	"github.com/golang/glog"
 )
 
 const (

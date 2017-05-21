@@ -6,9 +6,9 @@ import (
 	"flag"
 	"time"
 
-	"github.com/golang/glog"
 	"github.com/cfreeman/embd"
 	"github.com/cfreeman/embd/sensor/watersensor"
+	"github.com/golang/glog"
 
 	_ "github.com/cfreeman/embd/host/all"
 )

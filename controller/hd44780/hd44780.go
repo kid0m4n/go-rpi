@@ -15,8 +15,8 @@ package hd44780
 import (
 	"time"
 
-	"github.com/golang/glog"
 	"github.com/cfreeman/embd"
+	"github.com/golang/glog"
 )
 
 type entryMode byte
