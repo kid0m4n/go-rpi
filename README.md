@@ -253,9 +253,6 @@ If you find a problem but are not up to coding a fix please file an
 [issue](https://github.com/cfreeman/embd/issues).
 Thank you!
 
-## About
-
-EMBD is affectionately designed/developed by Karan Misra ([kidoman](https://github.com/kidoman)), Kunal Powar ([kunalpowar](https://github.com/kunalpowar)) and [FRIENDS](https://github.com/cfreeman/embd/blob/master/AUTHORS). We also have a list of [CONTRIBUTORS](https://github.com/cfreeman/embd/blob/master/CONTRIBUTORS).
 
 ## TODO
 * Continue to tidy up the readme and other documenting files.
