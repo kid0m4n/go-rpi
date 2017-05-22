@@ -243,22 +243,22 @@ heading, err := mag.Heading()
 The above two examples depend on **I2C** and therefore will work without change on almost all
 platforms.
 
-
-
 ## Contributing
 
 [Pull requests](https://github.com/cfreeman/embd/pulls) that follow the
 [guidelines](https://github.com/cfreeman/embd/blob/master/CONTRIBUTING.md) are very appreciated.
+
 If you find a problem but are not up to coding a fix please file an
 [issue](https://github.com/cfreeman/embd/issues).
 Thank you!
 
+## ROADMAP
 
-## TODO
-* Continue to tidy up the readme and other documenting files.
-* Remove AUTHORS & CONTRIBUTORS -- That stuff is better maintained within git history (don't forget update_contributors script).
+* Continue to tidy up the README and other documentation.
 * move utils.go into util package
-* Make sure there are samples for all the supported hardware.
-* Better organise samples -> into godoc?
+* Make sure there are samples for all supported hardware. Better organise samples move into godoc?
 * Rummage through the old, largely abandoned parent repo and pull in as many of the requests as possible.
-
+* A fully featured cli tool (**embd**)
+* Continue to add support for additional sensors/controllers/convertors.
+* Continue to add support for additional hosts (Cubietruck, Radxa, etc).
+* Supporting something other than Linux
