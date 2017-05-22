@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Karan Misra 2014
+ * Copyright (c) Clinton Freeman 2016
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -17,29 +17,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package bbb
+// Package pcal9535a adds support for the low volage GPIO expander as found in the Raspberry
+// Pi Relay board by Seeed Studio.
+package pcal9535a
 
 import (
-	"testing"
-
 	"github.com/cfreeman/embd"
 )
 
-func TestPWMPinClose(t *testing.T) {
-	pinMap := embd.PinMap{
-		&embd.PinDesc{ID: "P1_1", Aliases: []string{"1"}, Caps: embd.CapPWM},
+// More details at - http://wiki.seeedstudio.com/wiki/Raspberry_Pi_Relay_Board_v1.0
+const (
+	REG_MODE = 0x06
+)
+
+type PCAL9535A struct {
+	Bus  embd.I2CBus
+	Addr byte
+	D    byte
+}
+
+// New creates and connects to a PCAL9535A GPIO expander.
+func New(bus embd.I2CBus, addr byte) (*PCAL9535A, error) {
+	return &PCAL9535A{
+		Bus:  bus,
+		Addr: addr,
+		D:    0xff,
+	}, bus.WriteByteToReg(addr, REG_MODE, 0xff)
+}
+
+// Sets the nominated GPIO pin to either high (on = true) or low (on = false)
+func (c *PCAL9535A) SetPin(pin uint, on bool) error {
+	if on {
+		c.D &= ^(byte(0x1) << pin)
+	} else {
+		c.D |= (byte(0x1) << pin)
 	}
-	driver := embd.NewGPIODriver(pinMap, nil, nil, newPWMPin)
-	pin, err := driver.PWMPin(1)
-	if err != nil {
-		t.Fatalf("Looking up pwm pin 1: got %v", err)
-	}
-	pin.Close()
-	pin2, err := driver.PWMPin(1)
-	if err != nil {
-		t.Fatalf("Looking up pwm pin 1: got %v", err)
-	}
-	if pin == pin2 {
-		t.Fatal("Looking up closed pwm pin 1: but got the old instance")
-	}
+
+	return c.Bus.WriteByteToReg(c.Addr, REG_MODE, c.D)
+}
+
+// Gets the state of supplied pin true = high or on, while false = low or off.
+func (c *PCAL9535A) GetPin(pin uint) bool {
+	return (((c.D >> pin) & 1) == 0)
 }

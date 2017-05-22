@@ -3,7 +3,7 @@
 This actually is really simple. A few simple guidelines and we can break for dinner:
 
 * EMBD is designed with a lot of affection, with utmost importance given to the dev experience (read: the API feel and style.) So always think from that angle when creating the pull request
-* [Documentation](https://godoc.org/github.com/kidoman/embd) helps drive adoption. No exceptions
+* [Documentation](https://godoc.org/github.com/cfreeman/embd) helps drive adoption. No exceptions
 
 When it comes to the code:
 
@@ -23,7 +23,7 @@ When it comes to the code:
 	this is inspired by Dave Cheney's gpio library and his work on EPOLL
 	```
 
-* Individual lines must be wrapped at the 70-char limit. Yeah, old school	
+* Individual lines must be wrapped at the 70-char limit. Yeah, old school
 * No trailing '.'
 
 And:

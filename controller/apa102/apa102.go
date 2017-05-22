@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Karan Misra 2014
+ * Copyright (c) Clinton Freeman 2017
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -17,29 +17,69 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package bbb
+package apa102
 
 import (
-	"testing"
-
 	"github.com/cfreeman/embd"
 )
 
-func TestPWMPinClose(t *testing.T) {
-	pinMap := embd.PinMap{
-		&embd.PinDesc{ID: "P1_1", Aliases: []string{"1"}, Caps: embd.CapPWM},
+const (
+	MAX_BRIGHTNESS = 31
+)
+
+type APA102 struct {
+	Bus  embd.SPIBus
+	LED  []uint8
+	nLED int
+}
+
+func New(bus embd.SPIBus, numLEDs int) *APA102 {
+	res := &APA102{
+		Bus:  bus,
+		LED:  make([]uint8, numLEDs*4),
+		nLED: numLEDs,
 	}
-	driver := embd.NewGPIODriver(pinMap, nil, nil, newPWMPin)
-	pin, err := driver.PWMPin(1)
+
+	// Init the intensity field for each LED which is
+	// 0b111 + 5 intensity bits.
+	for i := 0; i < (numLEDs * 4); i = i + 4 {
+		res.LED[i] = 224
+	}
+
+	return res
+}
+
+func (a *APA102) SetLED(index int, r uint8, g uint8, b uint8, i uint8) error {
+	intensity := i
+	if i > 31 {
+		intensity = 31
+	}
+
+	ind := index * 4
+
+	a.LED[ind+0] = 224 + intensity // Brightness is 0b111 + 5 intensity bits
+	a.LED[ind+1] = b
+	a.LED[ind+2] = g
+	a.LED[ind+3] = r
+
+	return a.Show()
+}
+
+func (a *APA102) Show() error {
+	// Start frame is 32 zero bits.
+	err := a.Bus.TransferAndReceiveData([]uint8{0, 0, 0, 0})
+
+	// LED data.
+	// 111+5bits(intensity) + 1byte(Red) + 1byte(Green) + 1byte(Blue)
+	err = a.Bus.TransferAndReceiveData(a.LED)
 	if err != nil {
-		t.Fatalf("Looking up pwm pin 1: got %v", err)
+		return err
 	}
-	pin.Close()
-	pin2, err := driver.PWMPin(1)
+
+	err = a.Bus.TransferAndReceiveData([]uint8{1, 1, 1, 1})
 	if err != nil {
-		t.Fatalf("Looking up pwm pin 1: got %v", err)
+		return err
 	}
-	if pin == pin2 {
-		t.Fatal("Looking up closed pwm pin 1: but got the old instance")
-	}
+
+	return nil
 }

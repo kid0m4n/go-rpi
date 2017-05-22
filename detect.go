@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) Karan Misra 2014
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 // Host detection.
 
 package embd
@@ -25,6 +44,9 @@ const (
 
 	// HostGalileo represents the Intel Galileo board.
 	HostGalileo = "Intel Galileo"
+
+	// HostEdison represents teh Intel Edison board.
+	HostEdison = "Intel Edison"
 
 	// HostCubieTruck represents the Cubie Truck.
 	HostCubieTruck = "CubieTruck"
@@ -126,6 +148,8 @@ func DetectHost() (host Host, rev int, err error) {
 		return HostBBB, rev, nil
 	case strings.Contains(hardware, "BCM2708") || strings.Contains(hardware, "BCM2709") || strings.Contains(hardware, "BCM2835"):
 		return HostRPi, rev, nil
+	case strings.Contains(model, "Genuine Intel(R) CPU   4000  @  500MHz"):
+		return HostEdison, rev, nil
 	case hardware == "Allwinner sun4i/sun5i Families":
 		if major < 4 || (major == 4 && minor < 4) {
 			return HostNull, 0, fmt.Errorf(
@@ -134,6 +158,6 @@ func DetectHost() (host Host, rev int, err error) {
 		}
 		return HostCHIP, rev, nil
 	default:
-		return HostNull, 0, fmt.Errorf(`embd: your host "%v:%v" is not supported at this moment. request support at https://github.com/kidoman/embd/issues`, host, model)
+		return HostNull, 0, fmt.Errorf(`embd: your host "%v:%v" is not supported at this moment. request support at https://github.com/cfreeman/embd/issues`, host, model)
 	}
 }

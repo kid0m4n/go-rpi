@@ -1,6 +1,4 @@
 /*
- * Copyright (c) Karan Misra 2014
- *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
  * including without limitation the rights to use, copy, modify, merge, publish, distribute,
@@ -17,29 +15,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package bbb
+// +build ignore
+
+package main
 
 import (
-	"testing"
+	"fmt"
 
 	"github.com/cfreeman/embd"
+	"github.com/cfreeman/embd/controller/apa102"
+	_ "github.com/cfreeman/embd/host/all"
 )
 
-func TestPWMPinClose(t *testing.T) {
-	pinMap := embd.PinMap{
-		&embd.PinDesc{ID: "P1_1", Aliases: []string{"1"}, Caps: embd.CapPWM},
+func main() {
+	if err := embd.InitSPI(); err != nil {
+		panic(err)
 	}
-	driver := embd.NewGPIODriver(pinMap, nil, nil, newPWMPin)
-	pin, err := driver.PWMPin(1)
+	defer embd.CloseSPI()
+
+	spiBus := embd.NewSPIBus(embd.SPIMode0, 0, 8000000, 8, 0)
+	defer spiBus.Close()
+
+	strip := apa102.New(spiBus, 5)
+	err := strip.SetLED(0, 255, 0, 0, 31)
 	if err != nil {
-		t.Fatalf("Looking up pwm pin 1: got %v", err)
-	}
-	pin.Close()
-	pin2, err := driver.PWMPin(1)
-	if err != nil {
-		t.Fatalf("Looking up pwm pin 1: got %v", err)
-	}
-	if pin == pin2 {
-		t.Fatal("Looking up closed pwm pin 1: but got the old instance")
+		fmt.Printf("ERROR Unable to set LED.")
+		fmt.Printf("%s", err)
 	}
 }
