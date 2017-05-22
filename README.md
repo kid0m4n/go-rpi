@@ -98,8 +98,9 @@ Then on the rPi run the program with ```sudo```*:
 * **BMP180** Barometric pressure sensor [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/bmp180), [Datasheet](http://www.adafruit.com/datasheets/BST-BMP180-DS000-09.pdf)
 * **L3GD20** Gyroscope [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/l3gd20), [Datasheet](http://www.adafruit.com/datasheets/L3GD20.pdf)
 * **LSM303** Accelerometer and magnetometer [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/lsm303), [Datasheet](https://www.sparkfun.com/datasheets/Sensors/Magneto/LSM303%20Datasheet.pdf)
-* **TMP006** Thermopile sensor [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/tmp006), [Datasheet](http://www.adafruit.com/datasheets/tmp006.pdf), [Userguide](http://www.adafruit.com/datasheets/tmp006ug.pdf)
+* **TMP006** Thermopile sensor [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/tmp006), [Datasheet](http://www.adafruit.com/datasheets/tmp006.pdf)
 * **US020** Ultrasonic proximity sensor [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/us020), [Product Page](http://www.digibay.in/sensor/object-detection-and-proximity?product_id=239)
+* **Watersensor** Based on LM393 (currently only provides digital support) [Documentation](http://godoc.org/github.com/cfreeman/embd/sensor/watersensor)[Datasheet](http://www.ti.com/lit/ds/symlink/lm393-n.pdf)
 
 ## Interfaces
 
@@ -258,10 +259,9 @@ EMBD is affectionately designed/developed by Karan Misra ([kidoman](https://gith
 
 ## TODO
 * Continue to tidy up the readme and other documenting files.
-* Find more details/datasheet on the implemented watersensor.
-* Dig through logs and add license/copyright headers throughout.
 * Remove AUTHORS & CONTRIBUTORS -- That stuff is better maintained within git history (don't forget update_contributors script).
+* move utils.go into util package
 * Make sure there are samples for all the supported hardware.
-* Organise samples into different folders.
+* Better organise samples -> into godoc?
 * Rummage through the old, largely abandoned parent repo and pull in as many of the requests as possible.
 
