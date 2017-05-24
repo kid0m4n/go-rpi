@@ -86,7 +86,7 @@ func (r *MPU6050Reading) Velocity() velocity {
 	return r.gReading
 }
 
-func (r *MPU6050Reading) Temp() temperature {
+func (r *MPU6050Reading) Temperature() temperature {
 	return r.tReading
 }
 

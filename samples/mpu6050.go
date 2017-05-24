@@ -25,7 +25,8 @@ func main() {
 
 	bus := embd.NewI2CBus(1)
 
-	sensor, _ := mpu6050.New(bus, &mpu6050.Config{GiroScale: "1000", Dlpf: "6"})
+	sensor, _ := mpu6050.New(bus, &mpu6050.Config{GiroScale: "1000", AccelScale: "4g", Dlpf: "6"})
+	// GiroScale, Dlpf, AccelScale can be omited to use the defaults
 
 	sensor.Start()
 	defer sensor.Close()
@@ -35,13 +36,19 @@ func main() {
 	signal.Notify(stop, os.Interrupt, os.Kill)
 
 	for {
+		reading := sensor.Read()
+		o := reading.Orientation()
+		v := reading.Velocity()
+		t := reading.Temperature()
+
 		select {
 		case <-stop:
 			return
 		default:
-			v := sensor.Read().Orientation()
 			print("\033[H\033[2J") // clear the screen for every read
+			fmt.Println(o)
 			fmt.Println(v)
+			fmt.Println(t)
 			time.Sleep(200 * time.Millisecond)
 		}
 	}
