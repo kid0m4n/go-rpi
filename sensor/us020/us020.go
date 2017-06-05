@@ -2,6 +2,7 @@
 package us020
 
 import (
+	"errors"
 	"sync"
 	"time"
 
@@ -82,24 +83,37 @@ func (d *US020) Distance() (float64, error) {
 		return 0, err
 	}
 
-	glog.V(2).Infof("us020: trigerring pulse")
+	// Ready the goroutine to measure return pulse.
+	done := make(chan time.Duration)
+	errChan := make(chan error)
+	go func() {
+		glog.V(2).Infof("us020: waiting for echo to go high")
+		duration, err := d.EchoPin.TimePulse(embd.High)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		done <- duration
+	}()
 
-	// Generate a TRIGGER pulse
+	// Generate a TRIGGER pulse.
+	glog.V(2).Infof("us020: trigerring pulse")
 	d.TriggerPin.Write(embd.High)
 	time.Sleep(pulseDelay)
 	d.TriggerPin.Write(embd.Low)
 
-	glog.V(2).Infof("us020: waiting for echo to go high")
-
-	duration, err := d.EchoPin.TimePulse(embd.High)
-	if err != nil {
-		return 0, err
+	// Wait for data on channel or timeout.
+	t := time.NewTimer(time.Millisecond * 200)
+	select {
+	case <-t.C:
+		return 0, errors.New("timeout on ultrasonic pulse")
+	case duration := <-done:
+		distance := float64(duration.Nanoseconds()) / 10000000 * (d.speedSound / 2)
+		return distance, nil
+	case e := <-errChan:
+		return 0, e
 	}
 
-	// Calculate the distance based on the time computed
-	distance := float64(duration.Nanoseconds()) / 10000000 * (d.speedSound / 2)
-
-	return distance, nil
 }
 
 // Close.
