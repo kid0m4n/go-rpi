@@ -166,7 +166,7 @@ func (d *HMC5883L) Heading() (float64, error) {
 	case heading := <-d.headings:
 		return heading, nil
 	default:
-		glog.V(2).Infof("lsm303: no headings available... measuring")
+		glog.V(3).Infof("lsm303: no headings available... measuring")
 		return d.measureHeading()
 	}
 }
