@@ -52,17 +52,22 @@ const (
 	pollDelay = 250 // Delay before reading from mag. (ms)
 )
 
+type calib struct {
+	minX int16
+	maxX int16
+	minY int16
+	maxY int16
+}
+
 // HMC5883L represents a HMC5883L magnetometer.
 type HMC5883L struct {
-	Bus  embd.I2CBus
-	Poll int
-
+	Bus         embd.I2CBus
+	Poll        int
 	initialized bool
 	mu          sync.RWMutex
-
-	headings chan float64
-
-	quit chan struct{}
+	headings    chan float64
+	quit        chan struct{}
+	calibData   calib
 }
 
 // New creates a new HMC5883L interface. The bus variable controls
@@ -109,15 +114,50 @@ func (d *HMC5883L) measureHeading() (float64, error) {
 	}
 
 	x := int16(data[0])<<8 | int16(data[1])
+	z := int16(data[2])<<8 | int16(data[3])
 	y := int16(data[4])<<8 | int16(data[5])
 
-	heading := math.Atan2(float64(y), float64(x)) / math.Pi * 180
-	if heading < 0 {
-		heading += 360
+	/*Note on Calibration:
+	   In order to compensate for tilt of compass, it has to be calibrated. To calibrate
+		 rotate the compass a full 360'. Then calculate the X and Y offsets as
+		 Xoffset = (minX + maxX)/2 ; Yoffset = (minY +maxY)/2
+		 when reading the raw values update them by offset
+		 Xadj = Xraw - Xoffset
+		 Yadj = Yraw - Yoffset
+	*/
+	if x < d.calibData.minX {
+		d.calibData.minX = x
 	}
 
-	glog.V(3).Infof("Mag X=%v Y=%v HEAD=%v", x, y, heading)
-	return heading, nil
+	if x > d.calibData.maxX {
+		d.calibData.maxX = x
+	}
+
+	if y < d.calibData.minY {
+		d.calibData.minY = y
+	}
+
+	if y > d.calibData.maxY {
+		d.calibData.maxY = y
+	}
+
+	x -= 274
+	y -= 56
+
+	heading := math.Atan2(float64(y), float64(x))
+	heading += 233.9 / 1000
+	if heading < 0 {
+		heading += 2 * math.Pi
+	}
+
+	if heading > 2*math.Pi {
+		heading -= 2 * math.Pi
+	}
+
+	head := heading * 180 / math.Pi
+
+	glog.V(3).Infof("Mag X=%v Y=%v Z=%v HEAD=%v CalibData=%v", x, y, z, head, d.calibData)
+	return head, nil
 }
 
 // Heading returns the current heading [0, 360).
