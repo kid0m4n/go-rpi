@@ -37,15 +37,16 @@ func TestBufferHoriz_On(t *testing.T) {
 	pages := uint(2) // height = 16
 
 	for _, tt := range onTests {
-		t.Run(tt.name, func(t *testing.T) {
-			buffer := newBufferHoriz(width, pages)
+		// Disabling testing Run use since this needs to build in go 1.6 also
+		//t.Run(tt.name, func(t *testing.T) {
+		buffer := newBufferHoriz(width, pages)
 
-			buffer.On(tt.x, tt.y)
+		buffer.On(tt.x, tt.y)
 
-			if !reflect.DeepEqual(buffer.cells, tt.expected) {
-				t.Errorf("%s: wrong cell content, saw %v", tt.name, buffer.cells)
-			}
-		})
+		if !reflect.DeepEqual(buffer.cells, tt.expected) {
+			t.Errorf("%s: wrong cell content, saw %v", tt.name, buffer.cells)
+		}
+		//})
 	}
 }
 
@@ -54,14 +55,15 @@ func TestBufferHoriz_Set(t *testing.T) {
 	pages := uint(2) // height = 16
 
 	for _, tt := range onTests {
-		t.Run(tt.name, func(t *testing.T) {
-			buffer := newBufferHoriz(width, pages)
-			buffer.Set(tt.x, tt.y, true)
+		// Disabling testing Run use since this needs to build in go 1.6 also
+		//t.Run(tt.name, func(t *testing.T) {
+		buffer := newBufferHoriz(width, pages)
+		buffer.Set(tt.x, tt.y, true)
 
-			if !reflect.DeepEqual(buffer.cells, tt.expected) {
-				t.Errorf("%s: wrong cell content, saw %v", tt.name, buffer.cells)
-			}
-		})
+		if !reflect.DeepEqual(buffer.cells, tt.expected) {
+			t.Errorf("%s: wrong cell content, saw %v", tt.name, buffer.cells)
+		}
+		//})
 	}
 }
 
@@ -82,15 +84,16 @@ func TestBufferHoriz_FillRect(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			buffer := newBufferHoriz(width, pages)
+		// Disabling testing Run use since this needs to build in go 1.6 also
+		//t.Run(tt.name, func(t *testing.T) {
+		buffer := newBufferHoriz(width, pages)
 
-			buffer.FillRect(tt.x, tt.y, tt.width, tt.height)
+		buffer.FillRect(tt.x, tt.y, tt.width, tt.height)
 
-			if !reflect.DeepEqual(buffer.cells, tt.expected) {
-				t.Errorf("%s: wrong cell content, saw %v", tt.name, buffer.cells)
-			}
-		})
+		if !reflect.DeepEqual(buffer.cells, tt.expected) {
+			t.Errorf("%s: wrong cell content, saw %v", tt.name, buffer.cells)
+		}
+		//})
 	}
 }
 
@@ -109,18 +112,19 @@ func TestBufferHoriz_Off(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			buffer := newBufferHoriz(width, pages)
+		// Disabling testing Run use since this needs to build in go 1.6 also
+		//t.Run(tt.name, func(t *testing.T) {
+		buffer := newBufferHoriz(width, pages)
 
-			// assumes TestBufferHoriz_FillRect passes
-			buffer.FillRect(0, 0, 8, 16)
+		// assumes TestBufferHoriz_FillRect passes
+		buffer.FillRect(0, 0, 8, 16)
 
-			buffer.Off(tt.x, tt.y)
+		buffer.Off(tt.x, tt.y)
 
-			if !reflect.DeepEqual(buffer.cells, tt.expected) {
-				t.Errorf("%s: wrong cell content, saw %v", tt.name, buffer.cells)
-			}
+		if !reflect.DeepEqual(buffer.cells, tt.expected) {
+			t.Errorf("%s: wrong cell content, saw %v", tt.name, buffer.cells)
+		}
 
-		})
+		//})
 	}
 }
