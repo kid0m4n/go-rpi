@@ -56,6 +56,13 @@ type SPIDriver interface {
 var spiDriverInitialized bool
 var spiDriverInstance SPIDriver
 
+// SetSPIDriver should be used only for testing purpose.It makes possible to unit test embd spi functionality.
+// it overrides spiDriverInstance
+func SetSPIDriver(drv SPIDriver, initialized bool) {
+	spiDriverInstance = drv
+	spiDriverInitialized = initialized
+}
+
 // InitSPI initializes the SPI driver.
 func InitSPI() error {
 	if spiDriverInitialized {
