@@ -16,9 +16,13 @@ const (
 	pwmControlPoints = 4096
 
 	mode1RegAddr    = 0x00
+	mode2RegAddr    = 0x01
 	preScaleRegAddr = 0xFE
 
 	pwm0OnLowReg = 0x6
+
+	//mode2 reg
+	OUTDRV = 0x04
 
 	// inspired by arduino's default freq for analogWrites
 	defaultFreq = 490
@@ -64,9 +68,9 @@ func (d *PCA9685) setup() error {
 
 	glog.V(1).Infof("pca9685: read MODE1 Reg [regAddr: %#02x] Value: [%v]", mode1RegAddr, mode1Reg)
 
-	if err := d.sleep(); err != nil {
-		return err
-	}
+	//	if err := d.sleep(); err != nil {
+	//		return err
+	//	}
 
 	if d.Freq == 0 {
 		d.Freq = defaultFreq
@@ -82,12 +86,17 @@ func (d *PCA9685) setup() error {
 		return err
 	}
 
-	newmode := ((mode1Reg | 0x01) & 0xDF)
-	if err := d.Bus.WriteByteToReg(d.Addr, mode1RegAddr, newmode); err != nil {
+	//initialize mode2 register
+	if err := d.Bus.WriteByteToReg(d.Addr, mode2RegAddr, OUTDRV); err != nil {
+		return err
+	}
+	//initialize mode1 register
+	newmode1 := ((mode1Reg | 0x01) & 0xDF)
+	if err := d.Bus.WriteByteToReg(d.Addr, mode1RegAddr, newmode1); err != nil {
 		return err
 	}
 
-	glog.V(1).Infof("pca9685: new mode [%#02x] [disabling register auto increment] written to MODE1 Reg [regAddr: %#02x]", newmode, mode1RegAddr)
+	glog.V(1).Infof("pca9685: new mode [%#02x] [disabling register auto increment] written to MODE1 Reg [regAddr: %#02x]", newmode1, mode1RegAddr)
 
 	d.initialized = true
 
